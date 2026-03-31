@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>배송 시스템 - 마스터 관리</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  min-height: 100vh;
+}
+
+/* 로그인 */
+.login-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 20px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+.login-box {
+  background: #1e293b; border-radius: 20px; padding: 40px 30px;
+  width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  border: 1px solid #334155;
+}
+.login-box h1 { text-align: center; font-size: 24px; color: #f59e0b; margin-bottom: 8px; }
+.login-box .subtitle { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
+.login-box label { display: block; font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; margin-top: 16px; }
+.login-box input {
+  width: 100%; padding: 12px 14px; background: #0f172a; border: 2px solid #334155;
+  border-radius: 10px; font-size: 15px; color: #e2e8f0; outline: none;
+}
+.login-box input:focus { border-color: #f59e0b; }
+.login-btn {
+  width: 100%; padding: 14px; background: #f59e0b; color: #0f172a; border: none;
+  border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 24px;
+}
+.login-btn:hover { background: #d97706; }
+.login-error { color: #ef4444; font-size: 13px; text-align: center; margin-top: 10px; display: none; }
+
+/* 메인 레이아웃 */
+.master-main { display: none; }
+.top-bar {
+  background: #1e293b; padding: 14px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 1000;
+}
+.top-bar h2 { font-size: 18px; color: #f59e0b; }
+.top-bar .info { font-size: 12px; color: #94a3b8; }
+.top-bar .right-btns { display: flex; gap: 8px; }
+.icon-btn {
+  background: rgba(245,158,11,0.15); border: 1px solid #f59e0b33;
+  color: #f59e0b; width: 36px; height: 36px; border-radius: 50%;
+  font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.icon-btn:hover { background: rgba(245,158,11,0.25); }
+
+/* 내비게이션 */
+.nav-menu {
+  display: flex; background: #1e293b; border-bottom: 1px solid #334155;
+  overflow-x: auto; position: sticky; top: 56px; z-index: 999;
+}
+.nav-item {
+  flex: none; padding: 12px 16px; font-size: 13px; font-weight: 600;
+  color: #64748b; cursor: pointer; white-space: nowrap;
+  border-bottom: 2px solid transparent; transition: all 0.2s;
+}
+.nav-item.active { color: #f59e0b; border-bottom-color: #f59e0b; }
+.nav-item:hover { color: #f59e0b; }
+
+/* 섹션 */
+.section { display: none; padding: 16px; }
+.section.active { display: block; }
+
+/* 카드 */
+.card {
+  background: #1e293b; border-radius: 12px; padding: 20px;
+  margin-bottom: 12px; border: 1px solid #334155;
+}
+.card h3 { font-size: 16px; margin-bottom: 16px; color: #f59e0b; }
+
+/* 대시보드 그리드 */
+.dash-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px; margin-bottom: 16px;
+}
+.dash-card {
+  background: #1e293b; border-radius: 12px; padding: 16px;
+  border: 1px solid #334155; text-align: center;
+}
+.dash-card .num { font-size: 28px; font-weight: 700; }
+.dash-card .label { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+
+/* 업체 카드 */
+.company-card {
+  background: #1e293b; border-radius: 12px; padding: 16px;
+  margin-bottom: 10px; border: 1px solid #334155;
+  border-left: 4px solid #f59e0b; transition: all 0.2s;
+}
+.company-card:hover { border-left-color: #fbbf24; background: #253348; }
+.company-card .comp-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+}
+.company-card .comp-name { font-size: 17px; font-weight: 700; color: #f8fafc; }
+.company-card .comp-code {
+  background: #f59e0b22; color: #f59e0b; padding: 2px 10px;
+  border-radius: 6px; font-size: 12px; font-weight: 600;
+}
+.company-card .comp-stats {
+  display: flex; gap: 16px; font-size: 13px; color: #94a3b8;
+}
+.company-card .comp-stats span { display: flex; align-items: center; gap: 4px; }
+
+/* 코스 상태 미니 */
+.course-mini {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  background: #0f172a; border-radius: 8px; margin-bottom: 6px;
+}
+.course-mini .c-name { font-weight: 600; font-size: 13px; min-width: 100px; }
+.course-mini .c-driver { font-size: 12px; color: #94a3b8; min-width: 60px; }
+.course-mini .c-bar { flex: 1; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; }
+.course-mini .c-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius: 3px; }
+.course-mini .c-pct { font-size: 12px; font-weight: 700; color: #f59e0b; min-width: 40px; text-align: right; }
+
+/* 폼 */
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 10px 12px; background: #0f172a; border: 2px solid #334155;
+  border-radius: 8px; font-size: 14px; color: #e2e8f0; outline: none;
+}
+.form-group input:focus, .form-group select:focus { border-color: #f59e0b; }
+
+.btn {
+  padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px;
+  font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.btn-gold { background: #f59e0b; color: #0f172a; }
+.btn-gold:hover { background: #d97706; }
+.btn-danger { background: #ef4444; color: #fff; }
+.btn-outline { background: transparent; color: #f59e0b; border: 2px solid #f59e0b; }
+.btn-outline:hover { background: #f59e0b22; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* 테이블 */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #0f172a; padding: 10px 8px; text-align: left; font-weight: 600; color: #94a3b8; border-bottom: 2px solid #334155; }
+td { padding: 10px 8px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
+tr:hover { background: #253348; }
+
+/* 필터 */
+.filter-bar {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center;
+}
+.filter-bar input, .filter-bar select {
+  padding: 8px 12px; background: #0f172a; border: 2px solid #334155;
+  border-radius: 8px; font-size: 13px; color: #e2e8f0; outline: none;
+}
+
+/* 모달 */
+.modal-overlay {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-content {
+  background: #1e293b; border-radius: 16px; padding: 24px; width: 90%;
+  max-width: 500px; max-height: 85vh; overflow-y: auto; border: 1px solid #334155;
+}
+.modal-content h3 { font-size: 18px; margin-bottom: 20px; text-align: center; color: #f59e0b; }
+
+/* 통계 바 */
+.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 200px; padding: 10px 0; }
+.bar-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
+.bar-fill {
+  width: 100%; max-width: 40px; background: linear-gradient(180deg, #f59e0b, #d97706);
+  border-radius: 4px 4px 0 0; transition: height 0.5s; min-height: 2px;
+}
+.bar-label { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+.bar-value { font-size: 11px; font-weight: 700; color: #f59e0b; margin-bottom: 4px; }
+
+/* 토스트 */
+.toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+  background: #f59e0b; color: #0f172a; padding: 12px 24px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; z-index: 5000; display: none;
+}
+
+/* 반응형 */
+@media(max-width:768px) {
+  .dash-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width:480px) {
+  .dash-grid { grid-template-columns: 1fr 1fr; }
+  .dash-card .num { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== 로그인 화면 ==================== -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <h1>👑 마스터 관리</h1>
+    <p class="subtitle">전체 시스템 관리자</p>
+    <label>마스터 비밀번호</label>
+    <input type="password" id="masterPassword" placeholder="마스터 비밀번호 입력">
+    <button class="login-btn" onclick="doMasterLogin()">로그인</button>
+    <p class="login-error" id="loginError"></p>
+  </div>
+</div>
+
+<!-- ==================== 마스터 메인 ==================== -->
+<div class="master-main" id="masterMain">
+
+  <!-- 상단 바 -->
+  <div class="top-bar">
+    <div>
+      <h2>👑 마스터 관리</h2>
+      <div class="info">전체 시스템 관리</div>
+    </div>
+    <div class="right-btns">
+      <button class="icon-btn" onclick="refreshAll()">🔄</button>
+      <button class="icon-btn" onclick="doMasterLogout()">🚪</button>
+    </div>
+  </div>
+
+  <!-- 내비게이션 -->
+  <div class="nav-menu">
+    <div class="nav-item active" onclick="switchSection('overview')">📊 전체현황</div>
+    <div class="nav-item" onclick="switchSection('companies')">🏢 업체관리</div>
+    <div class="nav-item" onclick="switchSection('allCourses')">🛣️ 코스현황</div>
+    <div class="nav-item" onclick="switchSection('allPayments')">💰 전체정산</div>
+    <div class="nav-item" onclick="switchSection('allStats')">📈 전체통계</div>
+    <div class="nav-item" onclick="switchSection('settings')">⚙️ 설정</div>
+  </div>
+
+  <!-- ==================== 1. 전체 현황 ==================== -->
+  <div class="section active" id="secOverview">
+    <div class="dash-grid" id="overviewGrid"></div>
+    <div class="card">
+      <h3>🏢 업체별 현황</h3>
+      <div id="companyOverviewList">
+        <div style="text-align:center;padding:20px;color:#94a3b8;">불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. 업체 관리 ==================== -->
+  <div class="section" id="secCompanies">
+    <div class="card">
+      <h3>🏢 등록 업체 목록</h3>
+      <div class="btn-row" style="margin-bottom:16px;">
+        <button class="btn btn-gold btn-sm" onclick="openAddCompany()">+ 새 업체 등록</button>
+      </div>
+      <div id="companyList">
+        <div style="text-align:center;padding:20px;color:#94a3b8;">불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 3. 코스 현황 ==================== -->
+  <div class="section" id="secAllCourses">
+    <div class="card">
+      <h3>🛣️ 전체 코스 실시간 현황</h3>
+      <div class="form-group">
+        <label>업체 선택</label>
+        <select id="courseCompanyFilter" onchange="loadAllCourses()">
+          <option value="">전체 업체</option>
+        </select>
+      </div>
+      <div id="allCoursesList">
+        <div style="text-align:center;padding:20px;color:#94a3b8;">불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 4. 전체 정산 ==================== -->
+  <div class="section" id="secAllPayments">
+    <div class="card">
+      <h3>💰 전체 업체 정산</h3>
+      <div class="filter-bar">
+        <input type="date" id="mPayDateFrom">
+        <span style="color:#94a3b8;">~</span>
+        <input type="date" id="mPayDateTo">
+        <select id="mPayCompanyFilter">
+          <option value="">전체 업체</option>
+        </select>
+        <button class="btn btn-gold btn-sm" onclick="searchAllPayments()">검색</button>
+        <button class="btn btn-outline btn-sm" onclick="exportAllPayments()">📥 CSV</button>
+      </div>
+      <div class="dash-grid" id="mPaySummary"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>날짜</th><th>업체</th><th>코스</th><th>기사</th><th>업체명</th><th>금액</th><th>결제</th><th>방식</th><th>영수증</th></tr>
+          </thead>
+          <tbody id="mPayTableBody">
+            <tr><td colspan="9" style="text-align:center;color:#94a3b8;">검색 조건을 선택하세요</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 5. 전체 통계 ==================== -->
+  <div class="section" id="secAllStats">
+    <div class="card">
+      <h3>📈 전체 시스템 통계</h3>
+      <div class="filter-bar">
+        <select id="mStatsPeriod" onchange="loadAllStats()">
+          <option value="week">최근 7일</option>
+          <option value="month">최근 30일</option>
+        </select>
+      </div>
+      <div class="dash-grid" id="mStatsOverview"></div>
+      <h4 style="color:#f59e0b;margin:20px 0 12px;">📊 업체별 배송 비교</h4>
+      <div class="bar-chart" id="mCompanyChart"></div>
+      <h4 style="color:#f59e0b;margin:20px 0 12px;">📊 일별 전체 배송</h4>
+      <div class="bar-chart" id="mDailyChart"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 6. 설정 ==================== -->
+  <div class="section" id="secSettings">
+    <div class="card">
+      <h3>🔑 마스터 비밀번호 변경</h3>
+      <div class="form-group">
+        <label>현재 비밀번호</label>
+        <input type="password" id="currentMasterPw" placeholder="현재 비밀번호">
+      </div>
+      <div class="form-group">
+        <label>새 비밀번호</label>
+        <input type="password" id="newMasterPw" placeholder="새 비밀번호">
+      </div>
+      <div class="form-group">
+        <label>새 비밀번호 확인</label>
+        <input type="password" id="confirmMasterPw" placeholder="새 비밀번호 확인">
+      </div>
+      <button class="btn btn-gold" onclick="changeMasterPassword()">비밀번호 변경</button>
+    </div>
+
+    <div class="card">
+      <h3>📋 시스템 정보</h3>
+      <div id="systemInfo" style="font-size:13px;color:#94a3b8;line-height:2;">
+        불러오는 중...
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 모달: 업체 등록 ==================== -->
+<div class="modal-overlay" id="companyModal">
+  <div class="modal-content">
+    <h3 id="companyModalTitle">🏢 새 업체 등록</h3>
+    <input type="hidden" id="editCompanyId">
+    <div class="form-group">
+      <label>업체 이름</label>
+      <input type="text" id="newCompanyName" placeholder="예: ABC 물류">
+    </div>
+    <div class="form-group">
+      <label>회사 코드 (자동생성 또는 직접입력)</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="newCompanyCode" placeholder="예: ABC123" style="flex:1;">
+        <button class="btn btn-outline btn-sm" onclick="generateCode()">자동생성</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>관리자 비밀번호</label>
+      <input type="password" id="newCompAdminPw" placeholder="업체 관리자 비밀번호">
+    </div>
+    <div class="form-group">
+      <label>기사 비밀번호</label>
+      <input type="password" id="newCompDriverPw" placeholder="기사용 비밀번호">
+    </div>
+    <div class="form-group">
+      <label>메모</label>
+      <input type="text" id="newCompMemo" placeholder="업체 관련 메모">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn btn-outline" onclick="closeCompanyModal()" style="flex:1;">취소</button>
+      <button class="btn btn-gold" onclick="saveCompany()" style="flex:1;">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 모달: 업체 상세 ==================== -->
+<div class="modal-overlay" id="companyDetailModal">
+  <div class="modal-content" style="max-width:600px;">
+    <h3 id="detailCompanyName">업체 상세</h3>
+    <div id="companyDetailContent">불러오는 중...</div>
+    <div style="margin-top:20px;">
+      <button class="btn btn-outline" onclick="closeCompanyDetailModal()" style="width:100%;">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+<script>
+// ==================== Firebase 초기화 ====================
+const firebaseConfig = {
+  apiKey: "AIzaSyBt_m9ZvwG15yxeZVAhm1SsjlEcLYLvZoI",
+  authDomain: "delivery-route0304.firebaseapp.com",
+  projectId: "delivery-route0304",
+  storageBucket: "delivery-route0304.firebasestorage.app",
+  messagingSenderId: "262012140829",
+  appId: "1:262012140829:web:e059d0d735b662d3f8f5f4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+// ==================== 전역 변수 ====================
+let allCompanies = [];
+let masterPassword = '';
+
+// ==================== 로그인 ====================
+window.onload = function() {
+  const saved = localStorage.getItem('masterLogin');
+  if (saved) {
+    document.getElementById('masterPassword').value = saved;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  if (document.getElementById('mPayDateFrom')) document.getElementById('mPayDateFrom').value = today;
+  if (document.getElementById('mPayDateTo')) document.getElementById('mPayDateTo').value = today;
+};
+
+async function doMasterLogin() {
+  const pw = document.getElementById('masterPassword').value.trim();
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  if (!pw) {
+    errEl.textContent = '비밀번호를 입력하세요';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const doc = await db.collection('system').doc('master').get();
+
+    if (!doc.exists) {
+      // 마스터 계정이 없으면 최초 설정
+      if (pw.length < 4) {
+        errEl.textContent = '최초 설정: 4자 이상 비밀번호를 입력하세요';
+        errEl.style.display = 'block';
+        return;
+      }
+      await db.collection('system').doc('master').set({
+        password: pw,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showToast('마스터 계정이 생성되었습니다!');
+      masterPassword = pw;
+    } else {
+      if (doc.data().password !== pw) {
+        errEl.textContent = '비밀번호가 일치하지 않습니다';
+        errEl.style.display = 'block';
+        return;
+      }
+      masterPassword = pw;
+    }
+
+    localStorage.setItem('masterLogin', pw);
+    showMasterMain();
+
+  } catch(e) {
+    errEl.textContent = '로그인 중 오류가 발생했습니다';
+    errEl.style.display = 'block';
+    console.error(e);
+  }
+}
+
+function showMasterMain() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('masterMain').style.display = 'block';
+  loadAllCompanies();
+}
+
+function doMasterLogout() {
+  if (!confirm('로그아웃 하시겠습니까?')) return;
+  document.getElementById('masterMain').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function refreshAll() {
+  loadAllCompanies();
+  showToast('새로고침 완료');
+}
+
+// ==================== 전체 업체 불러오기 ====================
+async function loadAllCompanies() {
+  try {
+    const snap = await db.collection('companies').orderBy('name').get();
+    allCompanies = [];
+    snap.forEach(doc => {
+      allCompanies.push({ id: doc.id, ...doc.data() });
+    });
+
+    // 업체 필터 셀렉트 업데이트
+    const selects = ['courseCompanyFilter', 'mPayCompanyFilter'];
+    selects.forEach(selId => {
+      const sel = document.getElementById(selId);
+      if (!sel) return;
+      const first = sel.options[0].textContent;
+      sel.innerHTML = '<option value="">' + first + '</option>';
+      allCompanies.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name + ' (' + c.code + ')';
+        sel.appendChild(opt);
+      });
+    });
+
+    loadOverview();
+    loadCompanyList();
+    loadSystemInfo();
+
+  } catch(e) {
+    console.error('업체 불러오기 실패:', e);
+  }
+}
+
+// ==================== 1. 전체 현황 ====================
+async function loadOverview() {
+  const today = new Date().toISOString().split('T')[0];
+  let totalCompanies = allCompanies.length;
+  let totalCourses = 0;
+  let totalDeliveries = 0;
+  let totalCompleted = 0;
+  let totalAmount = 0;
+  let totalUnpaid = 0;
+  let companyHtml = '';
+
+  for (const company of allCompanies) {
+    let compDeliveries = 0;
+    let compCompleted = 0;
+    let compAmount = 0;
+    let compCourses = 0;
+    let courseDetails = '';
+
+    try {
+      const courseSnap = await db.collection('companies').doc(company.id)
+        .collection('courses').orderBy('order').get();
+
+      compCourses = courseSnap.size;
+      totalCourses += compCourses;
+
+      for (const courseDoc of courseSnap.docs) {
+        const course = courseDoc.data();
+        try {
+          const logDoc = await db.collection('companies').doc(company.id)
+            .collection('courses').doc(courseDoc.id)
+            .collection('dailyLogs').doc(today).get();
+
+          let driverName = '-';
+          let delCount = 0;
+          let doneCount = 0;
+
+          if (logDoc.exists) {
+            const logData = logDoc.data();
+            driverName = logData.driverName || '-';
+            const dels = logData.deliveries || [];
+            delCount = dels.length;
+            doneCount = dels.filter(d => d.status !== 'pending').length;
+
+            dels.forEach(d => {
+              if (d.amount) {
+                if (d.paymentStatus === '완료') compAmount += d.amount;
+                if (d.paymentStatus === '미수') totalUnpaid += d.amount;
+              }
+            });
+          }
+
+          compDeliveries += delCount;
+          compCompleted += doneCount;
+          const pct = delCount > 0 ? Math.round((doneCount / delCount) * 100) : 0;
+
+          courseDetails += '<div class="course-mini">' +
+            '<div class="c-name">' + course.name + '</div>' +
+            '<div class="c-driver">' + driverName + '</div>' +
+            '<div class="c-bar"><div class="c-fill" style="width:' + pct + '%"></div></div>' +
+            '<div class="c-pct">' + doneCount + '/' + delCount + '</div>' +
+            '</div>';
+
+        } catch(e) {}
+      }
+    } catch(e) {}
+
+    totalDeliveries += compDeliveries;
+    totalCompleted += compCompleted;
+    totalAmount += compAmount;
+
+    const compPct = compDeliveries > 0 ? Math.round((compCompleted / compDeliveries) * 100) : 0;
+
+    companyHtml += '<div class="company-card">' +
+      '<div class="comp-header">' +
+      '<div class="comp-name">' + company.name + '</div>' +
+      '<div class="comp-code">' + company.code + '</div>' +
+      '</div>' +
+      '<div class="comp-stats">' +
+      '<span>🛣️ ' + compCourses + '코스</span>' +
+      '<span>📦 ' + compCompleted + '/' + compDeliveries + '건 (' + compPct + '%)</span>' +
+      '<span>💰 ' + compAmount.toLocaleString() + '원</span>' +
+      '</div>' +
+      (courseDetails ? '<div style="margin-top:10px;">' + courseDetails + '</div>' : '') +
+      '</div>';
+  }
+
+  // 대시보드 그리드
+  document.getElementById('overviewGrid').innerHTML =
+    '<div class="dash-card"><div class="num" style="color:#f59e0b;">' + totalCompanies + '</div><div class="label">등록 업체</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#3b82f6;">' + totalCourses + '</div><div class="label">전체 코스</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#8b5cf6;">' + totalDeliveries + '</div><div class="label">오늘 배송</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#22c55e;">' + totalCompleted + '</div><div class="label">완료</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#0ea5e9;">' + totalAmount.toLocaleString() + '</div><div class="label">결제합계(원)</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#ef4444;">' + totalUnpaid.toLocaleString() + '</div><div class="label">미수금(원)</div></div>';
+
+  document.getElementById('companyOverviewList').innerHTML = companyHtml || '<div style="text-align:center;padding:20px;color:#94a3b8;">등록된 업체가 없습니다</div>';
+}
+
+// ==================== 2. 업체 관리 ====================
+function loadCompanyList() {
+  if (allCompanies.length === 0) {
+    document.getElementById('companyList').innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;">등록된 업체가 없습니다</div>';
+    return;
+  }
+
+  let html = '';
+  allCompanies.forEach(c => {
+    html += '<div class="company-card" style="cursor:pointer;" onclick="viewCompanyDetail(\'' + c.id + '\')">' +
+      '<div class="comp-header">' +
+      '<div class="comp-name">' + c.name + '</div>' +
+      '<div class="comp-code">' + c.code + '</div>' +
+      '</div>' +
+      '<div class="comp-stats">' +
+      '<span>📝 ' + (c.memo || '-') + '</span>' +
+      '</div>' +
+      '<div style="margin-top:10px;display:flex;gap:6px;">' +
+      '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editCompany(\'' + c.id + '\')">수정</button>' +
+      '<button class="btn btn-sm" style="background:#3b82f6;color:#fff;" onclick="event.stopPropagation();resetCompanyPw(\'' + c.id + '\',\'' + c.name.replace(/'/g,"\\'") + '\')">비밀번호 초기화</button>' +
+      '<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCompany(\'' + c.id + '\',\'' + c.name.replace(/'/g,"\\'") + '\')">삭제</button>' +
+      '</div>' +
+      '</div>';
+  });
+
+  document.getElementById('companyList').innerHTML = html;
+}
+
+// ==================== 업체 등록 ====================
+function openAddCompany() {
+  document.getElementById('companyModalTitle').textContent = '🏢 새 업체 등록';
+  document.getElementById('editCompanyId').value = '';
+  document.getElementById('newCompanyName').value = '';
+  document.getElementById('newCompanyCode').value = '';
+  document.getElementById('newCompAdminPw').value = '';
+  document.getElementById('newCompDriverPw').value = '';
+  document.getElementById('newCompMemo').value = '';
+  generateCode();
+  document.getElementById('companyModal').classList.add('show');
+}
+
+function closeCompanyModal() {
+  document.getElementById('companyModal').classList.remove('show');
+}
+
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  document.getElementById('newCompanyCode').value = code;
+}
+
+async function saveCompany() {
+  const editId = document.getElementById('editCompanyId').value;
+  const name = document.getElementById('newCompanyName').value.trim();
+  const code = document.getElementById('newCompanyCode').value.trim().toUpperCase();
+  const adminPw = document.getElementById('newCompAdminPw').value.trim();
+  const driverPw = document.getElementById('newCompDriverPw').value.trim();
+  const memo = document.getElementById('newCompMemo').value.trim();
+
+  if (!name) { showToast('업체 이름을 입력하세요'); return; }
+  if (!code) { showToast('회사 코드를 입력하세요'); return; }
+
+  try {
+    // 코드 중복 확인
+    const codeCheck = await db.collection('companies').where('code', '==', code).get();
+    if (!codeCheck.empty && (!editId || codeCheck.docs[0].id !== editId)) {
+      showToast('이미 사용중인 코드입니다');
+      return;
+    }
+
+    if (editId) {
+      // 수정
+      const updateData = { name, code, memo, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+      if (adminPw) updateData.adminPassword = adminPw;
+      if (driverPw) updateData.driverPassword = driverPw;
+
+      await db.collection('companies').doc(editId).update(updateData);
+      showToast('업체가 수정되었습니다');
+    } else {
+      // 신규
+      if (!adminPw || !driverPw) { showToast('비밀번호를 입력하세요'); return; }
+
+      await db.collection('companies').add({
+        name, code, memo,
+        adminPassword: adminPw,
+        driverPassword: driverPw,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showToast('업체가 등록되었습니다! 코드: ' + code);
+    }
+
+    closeCompanyModal();
+    loadAllCompanies();
+
+  } catch(e) {
+    showToast('저장 실패');
+    console.error(e);
+  }
+}
+
+function editCompany(id) {
+  const c = allCompanies.find(comp => comp.id === id);
+  if (!c) return;
+
+  document.getElementById('companyModalTitle').textContent = '🏢 업체 수정';
+  document.getElementById('editCompanyId').value = id;
+  document.getElementById('newCompanyName').value = c.name || '';
+  document.getElementById('newCompanyCode').value = c.code || '';
+  document.getElementById('newCompAdminPw').value = '';
+  document.getElementById('newCompDriverPw').value = '';
+  document.getElementById('newCompMemo').value = c.memo || '';
+  document.getElementById('companyModal').classList.add('show');
+}
+
+async function deleteCompany(id, name) {
+  if (!confirm(name + ' 업체를 삭제하시겠습니까?\n⚠️ 모든 데이터가 삭제됩니다!')) return;
+  if (!confirm('정말로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+
+  try {
+    await db.collection('companies').doc(id).delete();
+    showToast(name + ' 업체가 삭제되었습니다');
+    loadAllCompanies();
+  } catch(e) {
+    showToast('삭제 실패');
+    console.error(e);
+  }
+}
+
+async function resetCompanyPw(id, name) {
+  const type = prompt(name + ' 비밀번호 초기화\n\n1: 관리자 비밀번호\n2: 기사 비밀번호\n3: 둘 다\n\n번호를 입력하세요:');
+  if (!type) return;
+
+  const newPw = prompt('새 비밀번호를 입력하세요 (4자 이상):');
+  if (!newPw || newPw.length < 4) { showToast('4자 이상 입력하세요'); return; }
+
+  try {
+    const update = {};
+    if (type === '1' || type === '3') update.adminPassword = newPw;
+    if (type === '2' || type === '3') update.driverPassword = newPw;
+
+    await db.collection('companies').doc(id).update(update);
+    showToast(name + ' 비밀번호가 초기화되었습니다');
+  } catch(e) {
+    showToast('초기화 실패');
+  }
+}
+
+// ==================== 업체 상세 보기 ====================
+async function viewCompanyDetail(id) {
+  const c = allCompanies.find(comp => comp.id === id);
+  if (!c) return;
+
+  document.getElementById('detailCompanyName').textContent = '🏢 ' + c.name;
+  document.getElementById('companyDetailContent').innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;">불러오는 중...</div>';
+  document.getElementById('companyDetailModal').classList.add('show');
+
+  const today = new Date().toISOString().split('T')[0];
+
+  try {
+    // 코스 목록
+    const courseSnap = await db.collection('companies').doc(id)
+      .collection('courses').orderBy('order').get();
+
+    // 업체 수
+    const clientSnap = await db.collection('companies').doc(id)
+      .collection('clients').get();
+
+    let html = '<div style="margin-bottom:16px;">' +
+      '<div style="font-size:13px;color:#94a3b8;margin-bottom:4px;">회사 코드</div>' +
+      '<div style="font-size:18px;font-weight:700;color:#f59e0b;">' + c.code + '</div>' +
+      '</div>' +
+      '<div style="margin-bottom:16px;">' +
+      '<div style="font-size:13px;color:#94a3b8;margin-bottom:4px;">관리자 비밀번호</div>' +
+      '<div style="font-size:14px;color:#e2e8f0;">' + (c.adminPassword || '-') + '</div>' +
+      '</div>' +
+      '<div style="margin-bottom:16px;">' +
+      '<div style="font-size:13px;color:#94a3b8;margin-bottom:4px;">기사 비밀번호</div>' +
+      '<div style="font-size:14px;color:#e2e8f0;">' + (c.driverPassword || '-') + '</div>' +
+      '</div>' +
+      '<div style="margin-bottom:16px;">' +
+      '<div style="font-size:13px;color:#94a3b8;margin-bottom:4px;">등록 업체(거래처) 수</div>' +
+      '<div style="font-size:14px;color:#e2e8f0;">' + clientSnap.size + '개</div>' +
+      '</div>' +
+      '<div style="margin-bottom:16px;">' +
+      '<div style="font-size:13px;color:#94a3b8;margin-bottom:8px;">코스 목록 (' + courseSnap.size + '개)</div>';
+
+    for (const courseDoc of courseSnap.docs) {
+      const course = courseDoc.data();
+      let driverName = '-';
+      let delInfo = '데이터 없음';
+
+      try {
+        const logDoc = await db.collection('companies').doc(id)
+          .collection('courses').doc(courseDoc.id)
+          .collection('dailyLogs').doc(today).get();
+
+        if (logDoc.exists) {
+          const logData = logDoc.data();
+          driverName = logData.driverName || '-';
+          const dels = logData.deliveries || [];
+          const done = dels.filter(d => d.status !== 'pending').length;
+          delInfo = done + '/' + dels.length + '건 완료';
+        }
+      } catch(e) {}
+
+      html += '<div class="course-mini">' +
+        '<div class="c-name">' + course.name + '</div>' +
+        '<div class="c-driver">' + driverName + '</div>' +
+        '<div style="font-size:12px;color:#94a3b8;">' + delInfo + '</div>' +
+        '</div>';
+    }
+
+    html += '</div>';
+
+    if (c.memo) {
+      html += '<div style="margin-bottom:16px;">' +
+        '<div style="font-size:13px;color:#94a3b8;margin-bottom:4px;">메모</div>' +
+        '<div style="font-size:14px;color:#e2e8f0;">' + c.memo + '</div>' +
+        '</div>';
+    }
+
+    document.getElementById('companyDetailContent').innerHTML = html;
+
+  } catch(e) {
+    document.getElementById('companyDetailContent').innerHTML = '<div style="color:#ef4444;">데이터를 불러올 수 없습니다</div>';
+    console.error(e);
+  }
+}
+
+function closeCompanyDetailModal() {
+  document.getElementById('companyDetailModal').classList.remove('show');
+}
+// ==================== 3. 전체 코스 현황 ====================
+async function loadAllCourses() {
+  const filterCompany = document.getElementById('courseCompanyFilter').value;
+  const today = new Date().toISOString().split('T')[0];
+  const targetCompanies = filterCompany ? allCompanies.filter(c => c.id === filterCompany) : allCompanies;
+
+  let html = '';
+
+  for (const company of targetCompanies) {
+    html += '<div style="margin-bottom:20px;">' +
+      '<div style="font-size:15px;font-weight:700;color:#f59e0b;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #334155;">' +
+      '🏢 ' + company.name + ' (' + company.code + ')' +
+      '</div>';
+
+    try {
+      const courseSnap = await db.collection('companies').doc(company.id)
+        .collection('courses').orderBy('order').get();
+
+      if (courseSnap.empty) {
+        html += '<div style="padding:10px;color:#94a3b8;font-size:13px;">코스가 없습니다</div>';
+      }
+
+      for (const courseDoc of courseSnap.docs) {
+        const course = courseDoc.data();
+
+        try {
+          const logDoc = await db.collection('companies').doc(company.id)
+            .collection('courses').doc(courseDoc.id)
+            .collection('dailyLogs').doc(today).get();
+
+          let driverName = '-';
+          let loginTime = '';
+          let delCount = 0;
+          let doneCount = 0;
+          let absentCount = 0;
+          let returnedCount = 0;
+          let courseAmount = 0;
+          let courseUnpaid = 0;
+          let lastComplete = '';
+          let deliveryDetails = '';
+
+          if (logDoc.exists) {
+            const logData = logDoc.data();
+            driverName = logData.driverName || '-';
+            if (logData.loginTime) {
+              const lt = logData.loginTime.toDate();
+              loginTime = lt.getHours().toString().padStart(2,'0') + ':' + lt.getMinutes().toString().padStart(2,'0');
+            }
+            const dels = logData.deliveries || [];
+            delCount = dels.length;
+
+            dels.forEach(d => {
+              if (d.status === 'completed') doneCount++;
+              else if (d.status === 'absent') absentCount++;
+              else if (d.status === 'returned') returnedCount++;
+
+              if (d.amount) {
+                if (d.paymentStatus === '완료') courseAmount += d.amount;
+                if (d.paymentStatus === '미수') courseUnpaid += d.amount;
+              }
+
+              if (d.completedAt && d.completedAt > lastComplete) {
+                lastComplete = d.completedAt;
+              }
+            });
+
+            // 최근 완료 5건
+            const recentDone = dels.filter(d => d.status !== 'pending')
+              .sort((a,b) => (b.completedAt || '').localeCompare(a.completedAt || ''))
+              .slice(0, 5);
+
+            if (recentDone.length > 0) {
+              deliveryDetails = '<div style="margin-top:8px;">';
+              recentDone.forEach(d => {
+                const icon = d.status === 'completed' ? '✅' : (d.status === 'absent' ? '🚫' : '↩️');
+                let timeStr = '';
+                if (d.completedAt) {
+                  const ct = new Date(d.completedAt);
+                  timeStr = ct.getHours().toString().padStart(2,'0') + ':' + ct.getMinutes().toString().padStart(2,'0');
+                }
+                deliveryDetails += '<div style="font-size:11px;color:#94a3b8;padding:2px 0;">' +
+                  icon + ' ' + d.company + ' ' + timeStr +
+                  (d.paymentStatus === '완료' ? ' 💰' + d.paymentMethod + ' ' + (d.amount ? d.amount.toLocaleString() : '') : '') +
+                  (d.paymentStatus === '미수' ? ' ⏳미수 ' + (d.amount ? d.amount.toLocaleString() : '') : '') +
+                  '</div>';
+              });
+              deliveryDetails += '</div>';
+            }
+          }
+
+          const pct = delCount > 0 ? Math.round((doneCount / delCount) * 100) : 0;
+          let lastTimeStr = '';
+          if (lastComplete) {
+            const lc = new Date(lastComplete);
+            lastTimeStr = lc.getHours().toString().padStart(2,'0') + ':' + lc.getMinutes().toString().padStart(2,'0');
+          }
+
+          html += '<div style="background:#0f172a;border-radius:10px;padding:14px;margin-bottom:8px;border:1px solid #334155;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+            '<div>' +
+            '<div style="font-weight:700;font-size:14px;color:#e2e8f0;">' + course.name + '</div>' +
+            '<div style="font-size:12px;color:#94a3b8;">👤 ' + driverName + (loginTime ? ' | 출근 ' + loginTime : '') + '</div>' +
+            '</div>' +
+            '<div style="text-align:right;">' +
+            '<div style="font-size:16px;font-weight:700;color:' + (pct === 100 ? '#22c55e' : '#f59e0b') + ';">' + pct + '%</div>' +
+            '<div style="font-size:11px;color:#94a3b8;">' + doneCount + '/' + delCount + '건</div>' +
+            '</div>' +
+            '</div>';
+
+          // 진행바
+          html += '<div style="height:6px;background:#334155;border-radius:3px;overflow:hidden;margin-bottom:8px;">' +
+            '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:3px;"></div>' +
+            '</div>';
+
+          // 상세 정보
+          html += '<div style="display:flex;gap:12px;font-size:12px;flex-wrap:wrap;">' +
+            '<span style="color:#22c55e;">✅ ' + doneCount + '</span>' +
+            '<span style="color:#ef4444;">🚫 ' + absentCount + '</span>' +
+            '<span style="color:#f59e0b;">↩️ ' + returnedCount + '</span>' +
+            '<span style="color:#0ea5e9;">💰 ' + courseAmount.toLocaleString() + '원</span>' +
+            (courseUnpaid > 0 ? '<span style="color:#ef4444;">⏳ ' + courseUnpaid.toLocaleString() + '원</span>' : '') +
+            (lastTimeStr ? '<span style="color:#94a3b8;">마지막 ' + lastTimeStr + '</span>' : '') +
+            '</div>';
+
+          html += deliveryDetails;
+          html += '</div>';
+
+        } catch(e) {
+          html += '<div style="padding:8px;color:#94a3b8;font-size:12px;">' + course.name + ': 데이터 없음</div>';
+        }
+      }
+    } catch(e) {
+      html += '<div style="padding:10px;color:#ef4444;font-size:13px;">코스를 불러올 수 없습니다</div>';
+    }
+
+    html += '</div>';
+  }
+
+  document.getElementById('allCoursesList').innerHTML = html || '<div style="text-align:center;padding:20px;color:#94a3b8;">업체가 없습니다</div>';
+}
+
+// ==================== 4. 전체 정산 ====================
+async function searchAllPayments() {
+  const dateFrom = document.getElementById('mPayDateFrom').value;
+  const dateTo = document.getElementById('mPayDateTo').value;
+  const companyFilter = document.getElementById('mPayCompanyFilter').value;
+
+  if (!dateFrom || !dateTo) { showToast('날짜를 선택하세요'); return; }
+
+  showToast('검색 중...');
+
+  const dates = [];
+  const start = new Date(dateFrom);
+  const end = new Date(dateTo);
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    dates.push(d.toISOString().split('T')[0]);
+  }
+
+  const targetCompanies = companyFilter ? allCompanies.filter(c => c.id === companyFilter) : allCompanies;
+  let allPayments = [];
+
+  for (const company of targetCompanies) {
+    try {
+      const courseSnap = await db.collection('companies').doc(company.id)
+        .collection('courses').get();
+
+      for (const courseDoc of courseSnap.docs) {
+        const courseName = courseDoc.data().name;
+
+        for (const date of dates) {
+          try {
+            const logDoc = await db.collection('companies').doc(company.id)
+              .collection('courses').doc(courseDoc.id)
+              .collection('dailyLogs').doc(date).get();
+
+            if (!logDoc.exists) continue;
+            const logData = logDoc.data();
+            const dels = logData.deliveries || [];
+
+            dels.forEach(d => {
+              if (d.status === 'pending') return;
+              if (!d.paymentStatus && !d.amount) return;
+
+              allPayments.push({
+                date: date,
+                companyName: company.name,
+                courseName: courseName,
+                driverName: logData.driverName || '-',
+                clientName: d.company || '-',
+                amount: d.amount || 0,
+                paymentStatus: d.paymentStatus || '-',
+                paymentMethod: d.paymentMethod || '-',
+                receiptUrl: d.receiptUrl || '',
+                completedAt: d.completedAt || ''
+              });
+            });
+          } catch(e) {}
+        }
+      }
+    } catch(e) {}
+  }
+
+  // 요약
+  let totalCard = 0, totalCash = 0, totalUnpaid = 0, totalCount = 0;
+  allPayments.forEach(p => {
+    totalCount++;
+    if (p.paymentStatus === '완료') {
+      if (p.paymentMethod === '카드') totalCard += p.amount;
+      else totalCash += p.amount;
+    } else if (p.paymentStatus === '미수') {
+      totalUnpaid += p.amount;
+    }
+  });
+
+  document.getElementById('mPaySummary').innerHTML =
+    '<div class="dash-card"><div class="num" style="color:#f59e0b;">' + totalCount + '</div><div class="label">총 건수</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#3b82f6;">' + totalCard.toLocaleString() + '</div><div class="label">카드 합계</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#22c55e;">' + totalCash.toLocaleString() + '</div><div class="label">현금 합계</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#ef4444;">' + totalUnpaid.toLocaleString() + '</div><div class="label">미수금</div></div>';
+
+  // 테이블
+  const tbody = document.getElementById('mPayTableBody');
+  if (allPayments.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#94a3b8;">검색 결과가 없습니다</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = allPayments.map(p => {
+    let timeText = '';
+    if (p.completedAt) {
+      const ct = new Date(p.completedAt);
+      timeText = ct.getHours().toString().padStart(2,'0') + ':' + ct.getMinutes().toString().padStart(2,'0');
+    }
+    return '<tr>' +
+      '<td>' + p.date + '</td>' +
+      '<td>' + p.companyName + '</td>' +
+      '<td>' + p.courseName + '</td>' +
+      '<td>' + p.driverName + '</td>' +
+      '<td style="font-weight:600;">' + p.clientName + '</td>' +
+      '<td style="text-align:right;font-weight:600;">' + (p.amount ? p.amount.toLocaleString() : '-') + '</td>' +
+      '<td>' + (p.paymentStatus === '완료' ? '💰' : '⏳') + ' ' + p.paymentStatus + '</td>' +
+      '<td>' + (p.paymentMethod !== '-' ? p.paymentMethod : '') + '</td>' +
+      '<td>' + (p.receiptUrl ? '<a href="' + p.receiptUrl + '" target="_blank" style="color:#f59e0b;">🧾보기</a>' : '-') + '</td>' +
+      '</tr>';
+  }).join('');
+
+  window._masterPayments = allPayments;
+  showToast(totalCount + '건 검색 완료');
+}
+
+function exportAllPayments() {
+  const data = window._masterPayments;
+  if (!data || data.length === 0) { showToast('먼저 검색을 실행하세요'); return; }
+
+  let csv = '\uFEFF날짜,업체,코스,기사,거래처,금액,결제여부,결제방식\n';
+  data.forEach(p => {
+    csv += p.date + ',"' + p.companyName + '","' + p.courseName + '","' + p.driverName + '","' +
+      p.clientName + '",' + p.amount + ',' + p.paymentStatus + ',' + p.paymentMethod + '\n';
+  });
+
+  const dateFrom = document.getElementById('mPayDateFrom').value;
+  const dateTo = document.getElementById('mPayDateTo').value;
+  downloadCSV(csv, '전체정산_' + dateFrom + '_' + dateTo + '.csv');
+}
+
+// ==================== 5. 전체 통계 ====================
+async function loadAllStats() {
+  const period = document.getElementById('mStatsPeriod').value;
+  const days = period === 'week' ? 7 : 30;
+
+  const dates = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().split('T')[0]);
+  }
+
+  let totalDeliveries = 0, totalCompleted = 0, totalAbsent = 0;
+  let totalAmount = 0, totalUnpaid = 0;
+  const dailyData = {};
+  const companyData = {};
+
+  dates.forEach(d => dailyData[d] = { total: 0, done: 0 });
+  allCompanies.forEach(c => companyData[c.id] = { name: c.name, total: 0, done: 0, amount: 0 });
+
+  for (const company of allCompanies) {
+    try {
+      const courseSnap = await db.collection('companies').doc(company.id)
+        .collection('courses').get();
+
+      for (const courseDoc of courseSnap.docs) {
+        for (const date of dates) {
+          try {
+            const logDoc = await db.collection('companies').doc(company.id)
+              .collection('courses').doc(courseDoc.id)
+              .collection('dailyLogs').doc(date).get();
+
+            if (!logDoc.exists) continue;
+            const dels = logDoc.data().deliveries || [];
+
+            dels.forEach(d => {
+              totalDeliveries++;
+              dailyData[date].total++;
+              if (companyData[company.id]) companyData[company.id].total++;
+
+              if (d.status === 'completed') {
+                totalCompleted++;
+                dailyData[date].done++;
+                if (companyData[company.id]) companyData[company.id].done++;
+              } else if (d.status === 'absent') {
+                totalAbsent++;
+              }
+
+              if (d.amount) {
+                if (d.paymentStatus === '완료') {
+                  totalAmount += d.amount;
+                  if (companyData[company.id]) companyData[company.id].amount += d.amount;
+                }
+                if (d.paymentStatus === '미수') totalUnpaid += d.amount;
+              }
+            });
+          } catch(e) {}
+        }
+      }
+    } catch(e) {}
+  }
+
+  const avgDaily = days > 0 ? Math.round(totalDeliveries / days) : 0;
+  const completionRate = totalDeliveries > 0 ? Math.round((totalCompleted / totalDeliveries) * 100) : 0;
+  const absentRate = totalDeliveries > 0 ? Math.round((totalAbsent / totalDeliveries) * 100) : 0;
+
+  // 개요
+  document.getElementById('mStatsOverview').innerHTML =
+    '<div class="dash-card"><div class="num" style="color:#f59e0b;">' + totalDeliveries + '</div><div class="label">총 배송</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#22c55e;">' + completionRate + '%</div><div class="label">완료율</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#ef4444;">' + absentRate + '%</div><div class="label">부재율</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#3b82f6;">' + avgDaily + '</div><div class="label">일 평균</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#22c55e;">' + totalAmount.toLocaleString() + '</div><div class="label">결제합계</div></div>' +
+    '<div class="dash-card"><div class="num" style="color:#ef4444;">' + totalUnpaid.toLocaleString() + '</div><div class="label">미수금</div></div>';
+
+  // 업체별 차트
+  const compValues = Object.values(companyData).filter(c => c.total > 0);
+  const maxComp = Math.max(...compValues.map(c => c.total), 1);
+
+  let compChartHtml = '';
+  compValues.forEach(c => {
+    const height = Math.round((c.total / maxComp) * 160);
+    const pct = c.total > 0 ? Math.round((c.done / c.total) * 100) : 0;
+
+    compChartHtml += '<div class="bar-item">' +
+      '<div class="bar-value">' + c.total + '건<br>' + pct + '%</div>' +
+      '<div class="bar-fill" style="height:' + Math.max(height, 2) + 'px;"></div>' +
+      '<div class="bar-label">' + c.name.substring(0, 6) + '</div>' +
+      '</div>';
+  });
+  document.getElementById('mCompanyChart').innerHTML = compChartHtml || '<div style="color:#94a3b8;text-align:center;">데이터가 없습니다</div>';
+
+  // 일별 차트
+  const maxDaily = Math.max(...Object.values(dailyData).map(d => d.total), 1);
+  const displayDates = period === 'week' ? dates : dates.filter((d, i) => i % 3 === 0 || i === dates.length - 1);
+
+  let dailyChartHtml = '';
+  displayDates.forEach(date => {
+    const d = dailyData[date];
+    const height = Math.round((d.total / maxDaily) * 160);
+
+    dailyChartHtml += '<div class="bar-item">' +
+      '<div class="bar-value">' + d.total + '</div>' +
+      '<div class="bar-fill" style="height:' + Math.max(height, 2) + 'px;"></div>' +
+      '<div class="bar-label">' + date.substring(5) + '</div>' +
+      '</div>';
+  });
+  document.getElementById('mDailyChart').innerHTML = dailyChartHtml || '<div style="color:#94a3b8;text-align:center;">데이터가 없습니다</div>';
+}
+
+// ==================== 6. 설정 ====================
+async function changeMasterPassword() {
+  const current = document.getElementById('currentMasterPw').value.trim();
+  const newPw = document.getElementById('newMasterPw').value.trim();
+  const confirm2 = document.getElementById('confirmMasterPw').value.trim();
+
+  if (!current) { showToast('현재 비밀번호를 입력하세요'); return; }
+  if (!newPw) { showToast('새 비밀번호를 입력하세요'); return; }
+  if (newPw.length < 4) { showToast('4자 이상 입력하세요'); return; }
+  if (newPw !== confirm2) { showToast('새 비밀번호가 일치하지 않습니다'); return; }
+  if (current !== masterPassword) { showToast('현재 비밀번호가 틀립니다'); return; }
+
+  try {
+    await db.collection('system').doc('master').update({ password: newPw });
+    masterPassword = newPw;
+    localStorage.setItem('masterLogin', newPw);
+
+    document.getElementById('currentMasterPw').value = '';
+    document.getElementById('newMasterPw').value = '';
+    document.getElementById('confirmMasterPw').value = '';
+
+    showToast('마스터 비밀번호가 변경되었습니다');
+  } catch(e) {
+    showToast('비밀번호 변경 실패');
+    console.error(e);
+  }
+}
+
+function loadSystemInfo() {
+  const totalCompanies = allCompanies.length;
+  const now = new Date();
+  const timeStr = now.getFullYear() + '-' + (now.getMonth()+1).toString().padStart(2,'0') + '-' +
+    now.getDate().toString().padStart(2,'0') + ' ' +
+    now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  document.getElementById('systemInfo').innerHTML =
+    '📊 등록 업체 수: <strong style="color:#f59e0b;">' + totalCompanies + '</strong>개<br>' +
+    '🕐 마지막 조회: <strong>' + timeStr + '</strong><br>' +
+    '🔥 Firebase 프로젝트: <strong>delivery-route0304</strong><br>' +
+    '🗺️ 카카오맵 API: <strong>활성</strong><br>' +
+    '🌤️ 날씨 API: <strong>활성</strong><br>' +
+    '📱 버전: <strong>1.0.0</strong>';
+}
+
+// ==================== 섹션 전환 ====================
+function switchSection(name) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+  const map = {
+    'overview': { idx: 0, id: 'secOverview' },
+    'companies': { idx: 1, id: 'secCompanies' },
+    'allCourses': { idx: 2, id: 'secAllCourses' },
+    'allPayments': { idx: 3, id: 'secAllPayments' },
+    'allStats': { idx: 4, id: 'secAllStats' },
+    'settings': { idx: 5, id: 'secSettings' }
+  };
+
+  const info = map[name];
+  document.querySelectorAll('.nav-item')[info.idx].classList.add('active');
+  document.getElementById(info.id).classList.add('active');
+
+  if (name === 'allCourses') loadAllCourses();
+  if (name === 'allStats') loadAllStats();
+}
+
+// ==================== 유틸리티 ====================
+function downloadCSV(csvContent, fileName) {
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('다운로드 완료: ' + fileName);
+}
+
+function showToast(msg, duration) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.display = 'none';
+  }, duration || 3000);
+}
+</script>
+</body>
+</html>
