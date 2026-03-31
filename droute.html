@@ -4,18 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>배송 루트 - 기사용</title>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+<meta name="mobile-web-app-capable" content="yes">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=de53d7ee76e21e3172148febe67df5f1&libraries=services"></script>
-
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f2f5;color:#333;min-height:100vh;overflow-x:hidden;}
-
 .login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#0066ff,#00c8ff);}
 .login-box{background:#fff;border-radius:20px;padding:40px 30px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
 .login-box h1{text-align:center;font-size:24px;color:#0066ff;margin-bottom:8px;}
@@ -27,58 +22,48 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .login-error{color:#ef4444;font-size:13px;text-align:center;margin-top:10px;display:none;}
 .saved-info{background:#f0f7ff;border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;color:#0066ff;text-align:center;}
 .course-loading{font-size:12px;color:#0066ff;margin-top:4px;display:none;}
-
 .main-screen{display:none;}
 .top-bar{background:#0066ff;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1000;}
-.top-bar .left{display:flex;align-items:center;gap:8px;}
 .top-bar .course-name{font-size:16px;font-weight:700;}
 .top-bar .driver-name{font-size:12px;opacity:0.85;}
 .top-bar .right{display:flex;align-items:center;gap:6px;}
-.top-bar .msg-badge{background:#ef4444;color:#fff;border-radius:50%;width:20px;height:20px;font-size:11px;display:none;align-items:center;justify-content:center;font-weight:700;}
+.msg-badge{background:#ef4444;color:#fff;border-radius:50%;width:20px;height:20px;font-size:11px;display:none;align-items:center;justify-content:center;font-weight:700;}
 .icon-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-
 .weather-bar{background:#fff;padding:8px 16px;display:flex;align-items:center;gap:8px;font-size:13px;border-bottom:1px solid #eee;}
 .weather-warn{background:#fef3cd;color:#856404;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;}
-
 .progress-section{background:#fff;padding:14px 16px;border-bottom:1px solid #eee;}
 .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.progress-header .status-text{font-size:14px;font-weight:600;}
-.progress-header .count-text{font-size:13px;color:#888;}
 .progress-bar-bg{background:#e9ecef;border-radius:10px;height:8px;overflow:hidden;}
 .progress-bar-fill{background:linear-gradient(90deg,#0066ff,#00c8ff);height:100%;border-radius:10px;transition:width 0.5s;width:0%;}
 .progress-stats{display:flex;justify-content:space-around;margin-top:10px;}
 .progress-stat{text-align:center;}
 .progress-stat .num{font-size:18px;font-weight:700;color:#0066ff;}
 .progress-stat .label{font-size:11px;color:#888;}
-
 .tab-menu{display:flex;background:#fff;border-bottom:2px solid #eee;position:sticky;top:58px;z-index:999;}
 .tab-item{flex:1;text-align:center;padding:10px 0;font-size:12px;font-weight:600;color:#888;cursor:pointer;border-bottom:2px solid transparent;}
 .tab-item.active{color:#0066ff;border-bottom-color:#0066ff;}
-
 .tab-content{display:none;padding:12px;}
 .tab-content.active{display:block;}
-
-.delivery-item{background:#fff;border-radius:12px;padding:14px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);position:relative;}
+.delivery-item{background:#fff;border-radius:12px;padding:14px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .delivery-item.completed{opacity:0.55;background:#f8f9fa;}
 .delivery-item.next-delivery{border:2px solid #0066ff;box-shadow:0 4px 15px rgba(0,102,255,0.15);}
 .delivery-item.urgent{border:2px solid #ef4444;background:#fff5f5;}
-.delivery-item .item-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-.delivery-item .order-badge{background:#0066ff;color:#fff;min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
-.delivery-item.completed .order-badge{background:#22c55e;}
-.delivery-item.urgent .order-badge{background:#ef4444;}
-.delivery-item .company-name{font-size:15px;font-weight:700;flex:1;}
-.delivery-item .order-input{width:45px;padding:4px;border:1px solid #ddd;border-radius:6px;text-align:center;font-size:13px;font-weight:600;}
-.delivery-item .address{font-size:12px;color:#666;margin-bottom:4px;margin-left:38px;}
-.delivery-item .eta-info{font-size:11px;color:#0066ff;font-weight:600;margin-bottom:4px;margin-left:38px;}
-.delivery-item .memo-box{background:#fff3cd;padding:5px 8px;border-radius:6px;font-size:11px;color:#856404;margin-bottom:4px;margin-left:38px;}
-.delivery-item .admin-memo-box{background:#d1ecf1;padding:5px 8px;border-radius:6px;font-size:11px;color:#0c5460;margin-bottom:4px;margin-left:38px;}
-.delivery-item .complete-info{font-size:11px;color:#666;margin-bottom:6px;margin-left:38px;}
-.delivery-item .btn-row{display:flex;gap:5px;flex-wrap:wrap;margin-left:38px;}
-.d-btn{padding:7px 10px;border-radius:8px;border:none;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:3px;}
+.item-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.order-badge{background:#0066ff;color:#fff;min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.completed .order-badge{background:#22c55e;}
+.urgent .order-badge{background:#ef4444;}
+.company-name{font-size:15px;font-weight:700;flex:1;}
+.order-input{width:45px;padding:4px;border:1px solid #ddd;border-radius:6px;text-align:center;font-size:13px;font-weight:600;}
+.addr-text{font-size:12px;color:#666;margin-bottom:4px;margin-left:38px;}
+.eta-text{font-size:11px;color:#0066ff;font-weight:600;margin-bottom:4px;margin-left:38px;}
+.memo-box{background:#fff3cd;padding:5px 8px;border-radius:6px;font-size:11px;color:#856404;margin-bottom:4px;margin-left:38px;}
+.admin-memo-box{background:#d1ecf1;padding:5px 8px;border-radius:6px;font-size:11px;color:#0c5460;margin-bottom:4px;margin-left:38px;}
+.complete-info{font-size:11px;color:#666;margin-bottom:6px;margin-left:38px;}
+.btn-row{display:flex;gap:5px;flex-wrap:wrap;margin-left:38px;}
+.d-btn{padding:7px 10px;border-radius:8px;border:none;font-size:11px;font-weight:600;cursor:pointer;}
 .d-btn.navi{background:#fee500;color:#333;}
 .d-btn.complete{background:#0066ff;color:#fff;}
 .d-btn.insert{background:#f0f0f0;color:#333;}
-
 .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:flex-end;justify-content:center;}
 .modal-overlay.show{display:flex;}
 .modal-content{background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;}
@@ -90,64 +75,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .radio-btn.selected{border-color:#0066ff;background:#f0f7ff;color:#0066ff;}
 .amount-wrap{position:relative;}
 .amount-wrap input{padding-right:30px;}
-.amount-wrap .won{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:14px;color:#888;font-weight:600;}
-
+.amount-wrap .won{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:14px;color:#888;}
 .receipt-upload{border:2px dashed #ddd;border-radius:10px;padding:15px;text-align:center;margin-top:6px;}
-.receipt-upload img{max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;}
 .receipt-btns{display:flex;gap:8px;margin-top:8px;justify-content:center;}
 .receipt-btns button{padding:8px 16px;border-radius:8px;border:2px solid #0066ff;background:#fff;color:#0066ff;font-size:13px;font-weight:600;cursor:pointer;}
-
 .modal-btn-row{display:flex;gap:10px;margin-top:20px;}
 .modal-btn{flex:1;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;}
 .modal-btn.cancel{background:#f0f0f0;color:#333;}
 .modal-btn.submit{background:#0066ff;color:#fff;}
-
 .next-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:center;justify-content:center;}
 .next-modal.show{display:flex;}
 .next-modal-content{background:#fff;border-radius:16px;padding:30px 24px;width:90%;max-width:400px;text-align:center;}
-.next-modal-content .next-icon{font-size:48px;margin-bottom:12px;}
-.next-modal-content .next-title{font-size:16px;font-weight:700;margin-bottom:6px;}
-.next-modal-content .next-company{font-size:20px;font-weight:700;color:#0066ff;margin-bottom:4px;}
+.next-modal-content .next-company{font-size:20px;font-weight:700;color:#0066ff;margin:8px 0;}
 .next-modal-content .next-addr{font-size:13px;color:#666;margin-bottom:20px;}
 .next-modal-content .next-btns{display:flex;gap:10px;}
 .next-modal-content .next-btns button{flex:1;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;}
-
 .insert-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;}
 .insert-modal.show{display:flex;}
 .insert-modal-content{background:#fff;border-radius:16px;padding:24px;width:90%;max-width:450px;max-height:80vh;overflow-y:auto;}
 .insert-modal-content h3{font-size:16px;margin-bottom:16px;text-align:center;}
-
 #mapContainer{width:100%;height:350px;border-radius:12px;overflow:hidden;margin-bottom:12px;}
-
 .map-pin{display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;}
-.map-pin .pin-num{min-width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);}
-.map-pin .pin-name{background:rgba(255,255,255,0.95);padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;color:#333;box-shadow:0 1px 4px rgba(0,0,0,0.15);max-width:80px;overflow:hidden;text-overflow:ellipsis;}
-
+.pin-num{min-width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);}
+.pin-name{background:rgba(255,255,255,0.95);padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;color:#333;box-shadow:0 1px 4px rgba(0,0,0,0.15);max-width:80px;overflow:hidden;text-overflow:ellipsis;}
 .pin-touch-bar{background:#fff3cd;border-radius:10px;padding:12px;margin-bottom:12px;display:none;}
 .pin-touch-bar.active{display:block;}
-.pin-touch-bar .pt-info{font-size:13px;font-weight:600;color:#856404;margin-bottom:8px;}
-.pin-touch-bar .pt-selected{font-size:12px;color:#666;margin-bottom:8px;}
-.pin-touch-bar .pt-btns{display:flex;gap:8px;}
-.pin-touch-bar .pt-btns button{padding:8px 14px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;}
-
+.pt-btns{display:flex;gap:8px;}
+.pt-btns button{padding:8px 14px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;}
 .input-section{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .input-section h4{font-size:13px;font-weight:700;margin-bottom:10px;color:#333;}
 .input-row{display:flex;gap:6px;margin-bottom:6px;}
 .input-row input{flex:1;min-width:0;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;}
 .input-row input:focus{border-color:#0066ff;}
 .input-row button{padding:10px 12px;background:#0066ff;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;}
-
 .autocomplete-list{background:#fff;border:1px solid #ddd;border-radius:8px;max-height:200px;overflow-y:auto;position:absolute;width:calc(100% - 12px);z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:none;}
 .autocomplete-item{padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f0f0f0;}
 .autocomplete-item:hover{background:#f0f7ff;}
 .autocomplete-item .item-name{font-weight:600;}
 .autocomplete-item .item-addr{color:#888;font-size:12px;}
-
 .quick-actions{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
-.quick-btn{padding:8px 12px;background:#fff;border:2px solid #e0e0e0;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;}
-.quick-btn:hover{border-color:#0066ff;color:#0066ff;}
-.quick-btn.active{border-color:#0066ff;background:#f0f7ff;color:#0066ff;}
-
+.quick-btn{padding:8px 12px;background:#fff;border:2px solid #e0e0e0;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;}
+.quick-btn:hover,.quick-btn.active{border-color:#0066ff;color:#0066ff;background:#f0f7ff;}
 .route-section{background:#e8f4ff;border-radius:12px;padding:14px;margin-bottom:12px;}
 .route-section h4{font-size:13px;font-weight:700;margin-bottom:10px;color:#0066ff;}
 .route-btns{display:flex;gap:6px;flex-wrap:wrap;}
@@ -155,1501 +123,524 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .route-btn.primary{background:#0066ff;color:#fff;}
 .route-btn.secondary{background:#fff;color:#0066ff;border:2px solid #0066ff;}
 .route-btn.save{background:#22c55e;color:#fff;}
-
 .paste-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;}
 .paste-modal.show{display:flex;}
 .paste-content{background:#fff;border-radius:16px;padding:24px;width:90%;max-width:500px;}
-.paste-content h3{margin-bottom:12px;font-size:16px;}
 .paste-content textarea{width:100%;height:200px;border:2px solid #e0e0e0;border-radius:8px;padding:12px;font-size:13px;resize:none;outline:none;}
-.paste-content .hint{font-size:11px;color:#888;margin:8px 0;}
-
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;z-index:5000;display:none;transition:opacity 0.3s;}
-.loading{text-align:center;padding:40px;color:#888;}
-.spinner{width:30px;height:30px;border:3px solid #e0e0e0;border-top-color:#0066ff;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 10px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-@media(max-width:480px){
-  .top-bar{padding:10px 12px;}
-  .tab-content{padding:10px;}
-  #mapContainer{height:280px;}
-  .input-row input{padding:10px;font-size:13px;}
-  .input-row button{padding:10px;font-size:12px;}
-}
+@media(max-width:480px){.top-bar{padding:10px 12px;}.tab-content{padding:10px;}#mapContainer{height:280px;}.input-row input{padding:10px;font-size:13px;}.input-row button{padding:10px;font-size:12px;}}
 </style>
 </head>
 <body>
-
 <div class="login-screen" id="loginScreen">
-  <div class="login-box">
-    <h1>🚛 배송 루트</h1>
-    <p class="subtitle">코스를 선택하고 배송을 시작하세요</p>
-    <div class="saved-info" id="savedInfo" style="display:none">
-      <span id="savedInfoText"></span>
-      <br><a href="#" onclick="clearSavedLogin();return false;" style="font-size:12px;">저장된 정보 삭제</a>
-    </div>
-    <label>회사 코드</label>
-    <input type="text" id="companyCode" placeholder="회사 코드를 입력하세요">
-    <div class="course-loading" id="courseLoading">🔄 코스 불러오는 중...</div>
-    <label>기사 비밀번호</label>
-    <input type="password" id="driverPassword" placeholder="비밀번호를 입력하세요">
-    <label>코스 선택</label>
-    <select id="courseSelect"><option value="">회사 코드를 먼저 입력하세요</option></select>
-    <label>오늘 배송 기사 이름</label>
-    <input type="text" id="driverName" placeholder="이름을 입력하세요">
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">배송 시작</button>
-    <p class="login-error" id="loginError"></p>
-  </div>
+<div class="login-box">
+<h1>🚛 배송 루트</h1>
+<p class="subtitle">코스를 선택하고 배송을 시작하세요</p>
+<div class="saved-info" id="savedInfo" style="display:none"><span id="savedInfoText"></span><br><a href="#" onclick="clearSavedLogin();return false;" style="font-size:12px;">저장된 정보 삭제</a></div>
+<label>회사 코드</label>
+<input type="text" id="companyCode" placeholder="회사 코드를 입력하세요">
+<div class="course-loading" id="courseLoading">🔄 코스 불러오는 중...</div>
+<label>기사 비밀번호</label>
+<input type="password" id="driverPassword" placeholder="비밀번호를 입력하세요">
+<label>코스 선택</label>
+<select id="courseSelect"><option value="">회사 코드를 먼저 입력하세요</option></select>
+<label>오늘 배송 기사 이름</label>
+<input type="text" id="driverName" placeholder="이름을 입력하세요">
+<button class="login-btn" id="loginBtn" onclick="doLogin()">배송 시작</button>
+<p class="login-error" id="loginError"></p>
 </div>
-
+</div>
 <div class="main-screen" id="mainScreen">
-  <div class="top-bar">
-    <div class="left"><div>
-      <div class="course-name" id="topCourseName">코스</div>
-      <div class="driver-name" id="topDriverName">기사</div>
-    </div></div>
-    <div class="right">
-      <div class="msg-badge" id="msgBadge">0</div>
-      <button class="icon-btn" onclick="showMessages()">💬</button>
-      <button class="icon-btn" onclick="shareRoute()">📤</button>
-      <button class="icon-btn" onclick="doLogout()">🚪</button>
-    </div>
-  </div>
-
-  <div class="weather-bar" id="weatherBar">
-    <span id="weatherIcon">☀️</span>
-    <span id="weatherText">날씨 정보를 불러오는 중...</span>
-  </div>
-
-  <div class="progress-section">
-    <div class="progress-header">
-      <span class="status-text" id="progressStatus">배송 준비중</span>
-      <span class="count-text" id="progressCount">0/0</span>
-    </div>
-    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
-    <div class="progress-stats">
-      <div class="progress-stat"><div class="num" id="statTotal">0</div><div class="label">전체</div></div>
-      <div class="progress-stat"><div class="num" id="statDone" style="color:#22c55e">0</div><div class="label">완료</div></div>
-      <div class="progress-stat"><div class="num" id="statRemain" style="color:#ef4444">0</div><div class="label">남은</div></div>
-      <div class="progress-stat"><div class="num" id="statDistance">-</div><div class="label">총 거리</div></div>
-    </div>
-  </div>
-
-  <div class="tab-menu">
-    <div class="tab-item active" onclick="switchTab('list')">📋 배송/루트</div>
-    <div class="tab-item" onclick="switchTab('map')">🗺️ 지도</div>
-    <div class="tab-item" onclick="switchTab('input')">➕ 주소입력</div>
-  </div>
-
-  <div class="tab-content active" id="tabList">
-    <div class="route-section">
-      <h4>🛣️ 루트 설정</h4>
-      <div class="route-btns">
-        <button class="route-btn primary" onclick="autoSortRoute('near')">🚀 가까운순</button>
-        <button class="route-btn secondary" onclick="autoSortRoute('far')">🔄 먼곳부터</button>
-        <button class="route-btn save" onclick="saveCurrentRoute()">💾 저장</button>
-      </div>
-    </div>
-    <div id="deliveryList"><div class="loading"><div class="spinner"></div>불러오는 중...</div></div>
-  </div>
-
-  <div class="tab-content" id="tabMap">
-    <div class="quick-actions">
-      <button class="quick-btn" onclick="startPinTouchMode()" id="mapClickModeBtn">📌 핀 터치로 순서 정하기</button>
-      <button class="quick-btn" onclick="fitMapBounds()">🔍 전체 보기</button>
-    </div>
-    <div class="pin-touch-bar" id="pinTouchBar">
-      <div class="pt-info">📌 핀을 순서대로 터치하세요</div>
-      <div class="pt-selected" id="ptSelected">선택: 0개</div>
-      <div class="pt-btns">
-        <button onclick="applyPinTouchOrder()" style="background:#0066ff;color:#fff;">✅ 적용</button>
-        <button onclick="resetPinTouch()" style="background:#f0f0f0;color:#333;">🔄 초기화</button>
-        <button onclick="cancelPinTouch()" style="background:#ef4444;color:#fff;">❌ 취소</button>
-      </div>
-    </div>
-    <div id="mapContainer"></div>
-  </div>
-
-  <div class="tab-content" id="tabInput">
-    <div class="input-section">
-      <h4>📍 출발지 설정</h4>
-      <div class="input-row">
-        <input type="text" id="startAddrInput" placeholder="출발지 주소">
-        <button onclick="useGPS('start')">📍</button>
-        <button onclick="searchAddress('start')">검색</button>
-      </div>
-      <div style="font-size:11px;color:#888;margin-top:4px;" id="startAddrInfo"></div>
-    </div>
-    <div class="input-section">
-      <h4>🏢 배송지 추가</h4>
-      <div style="position:relative;">
-        <div class="input-row"><input type="text" id="companyInput" placeholder="업체명 (자동완성)" oninput="onCompanyInput(this.value)"></div>
-        <div class="autocomplete-list" id="companyAutoList"></div>
-      </div>
-      <div class="input-row">
-        <input type="text" id="addrInput" placeholder="주소 입력">
-        <button onclick="searchAddress('dest')">검색</button>
-      </div>
-      <div class="input-row">
-        <input type="text" id="memoInput" placeholder="메모 (선택)">
-        <button onclick="addDelivery()" style="background:#22c55e;">추가</button>
-      </div>
-    </div>
-    <div class="input-section">
-      <h4>📋 빠른 입력</h4>
-      <div class="quick-actions">
-        <button class="quick-btn" onclick="loadFixedRoutes()">📌 고정 배송지</button>
-        <button class="quick-btn" onclick="showPasteModal()">📄 붙여넣기</button>
-        <button class="quick-btn" onclick="loadSavedRoute()">💾 저장된 루트</button>
-      </div>
-    </div>
-    <div class="input-section">
-      <h4>🔙 복귀지 설정</h4>
-      <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;">
-        <input type="checkbox" id="useReturn" onchange="toggleReturnAddr()"> 복귀지 사용
-      </label>
-      <div id="returnAddrDiv" style="display:none;margin-top:8px;">
-        <div class="input-row">
-          <input type="text" id="returnAddrInput" placeholder="복귀지 주소">
-          <button onclick="copyStartToReturn()">출발지=</button>
-          <button onclick="searchAddress('return')">검색</button>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="top-bar">
+<div><div class="course-name" id="topCourseName">코스</div><div class="driver-name" id="topDriverName">기사</div></div>
+<div class="right">
+<div class="msg-badge" id="msgBadge">0</div>
+<button class="icon-btn" onclick="showMessages()">💬</button>
+<button class="icon-btn" onclick="shareRoute()">📤</button>
+<button class="icon-btn" onclick="doLogout()">🚪</button>
 </div>
-
-<!-- 완료 모달 -->
-<div class="modal-overlay" id="completeModal">
-  <div class="modal-content">
-    <h3>📦 배송 완료 처리</h3>
-    <div id="completeCompanyName" style="font-size:15px;font-weight:700;text-align:center;margin-bottom:16px;"></div>
-    <label>배송 상태</label>
-    <div class="radio-group" id="deliveryStatus">
-      <div class="radio-btn selected" data-value="완료" onclick="selectRadio(this,'deliveryStatus')">✅ 완료</div>
-      <div class="radio-btn" data-value="부재" onclick="selectRadio(this,'deliveryStatus')">🚫 부재</div>
-      <div class="radio-btn" data-value="반송" onclick="selectRadio(this,'deliveryStatus')">↩️ 반송</div>
-    </div>
-    <label>결제 여부</label>
-    <div class="radio-group" id="paymentStatus">
-      <div class="radio-btn selected" data-value="완료" onclick="selectRadio(this,'paymentStatus')">💰 완료</div>
-      <div class="radio-btn" data-value="미수" onclick="selectRadio(this,'paymentStatus')">⏳ 미수</div>
-    </div>
-    <div id="paymentMethodDiv">
-      <label>결제 방식</label>
-      <div class="radio-group" id="paymentMethod">
-        <div class="radio-btn selected" data-value="카드" onclick="selectRadio(this,'paymentMethod')">💳 카드</div>
-        <div class="radio-btn" data-value="현금" onclick="selectRadio(this,'paymentMethod')">💵 현금</div>
-      </div>
-    </div>
-    <label>업체명</label>
-    <input type="text" id="completeCompany" placeholder="업체명">
-    <label>금액</label>
-    <div class="amount-wrap">
-      <input type="text" id="completeAmount" placeholder="금액 입력" inputmode="numeric" oninput="formatAmountInput(this)">
-      <span class="won">원</span>
-    </div>
-    <label>영수증 사진</label>
-    <div class="receipt-upload">
-      <div id="receiptPreview">📷 아래 버튼으로 촬영 또는 선택</div>
-      <input type="file" id="receiptCamera" accept="image/*" capture="environment" style="display:none">
-      <input type="file" id="receiptGallery" accept="image/*" style="display:none">
-      <div class="receipt-btns">
-        <button type="button" id="btnCamera">📷 촬영</button>
-        <button type="button" id="btnGallery">🖼️ 갤러리</button>
-      </div>
-    </div>
-    <label>메모</label>
-    <textarea id="completeMemo" rows="2" placeholder="특이사항"></textarea>
-    <div class="modal-btn-row">
-      <button class="modal-btn cancel" onclick="closeCompleteModal()">취소</button>
-      <button class="modal-btn submit" onclick="submitComplete()">완료 처리</button>
-    </div>
-  </div>
 </div>
-
-<!-- 다음 배송 모달 -->
-<div class="next-modal" id="nextModal">
-  <div class="next-modal-content">
-    <div class="next-icon">🚛</div>
-    <div class="next-title">다음 배송은</div>
-    <div class="next-company" id="nextCompanyName">-</div>
-    <div class="next-addr" id="nextAddress">-</div>
-    <div class="next-btns">
-      <button onclick="closeNextModal()" style="background:#f0f0f0;color:#333;">확인</button>
-      <button onclick="naviToNext()" style="background:#fee500;color:#333;">🧭 네비 연결</button>
-    </div>
-  </div>
+<div class="weather-bar"><span id="weatherIcon">☀️</span><span id="weatherText">날씨 로딩중...</span></div>
+<div class="progress-section">
+<div class="progress-header"><span id="progressStatus">배송 준비중</span><span id="progressCount" style="color:#888;font-size:13px;">0/0</span></div>
+<div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+<div class="progress-stats">
+<div class="progress-stat"><div class="num" id="statTotal">0</div><div class="label">전체</div></div>
+<div class="progress-stat"><div class="num" id="statDone" style="color:#22c55e">0</div><div class="label">완료</div></div>
+<div class="progress-stat"><div class="num" id="statRemain" style="color:#ef4444">0</div><div class="label">남은</div></div>
+<div class="progress-stat"><div class="num" id="statDistance">-</div><div class="label">총 거리</div></div>
 </div>
-
-<!-- 중간 삽입 모달 -->
-<div class="insert-modal" id="insertModal">
-  <div class="insert-modal-content">
-    <h3>📍 배송지 추가</h3>
-    <div id="insertAfterInfo" style="font-size:13px;color:#666;text-align:center;margin-bottom:12px;"></div>
-    <div style="position:relative;">
-      <div class="input-row"><input type="text" id="insertCompanyInput" placeholder="업체명" oninput="onInsertCompanyInput(this.value)"></div>
-      <div class="autocomplete-list" id="insertAutoList"></div>
-    </div>
-    <div class="input-row">
-      <input type="text" id="insertAddrInput" placeholder="주소 입력">
-      <button onclick="searchInsertAddr()">검색</button>
-    </div>
-    <div class="input-row"><input type="text" id="insertMemoInput" placeholder="메모 (선택)"></div>
-    <div class="modal-btn-row">
-      <button class="modal-btn cancel" onclick="closeInsertModal()">취소</button>
-      <button class="modal-btn submit" onclick="doInsertDelivery()">추가</button>
-    </div>
-  </div>
 </div>
-
-<!-- 붙여넣기 모달 -->
-<div class="paste-modal" id="pasteModal">
-  <div class="paste-content">
-    <h3>📄 주소 목록 붙여넣기</h3>
-    <textarea id="pasteTextarea" placeholder="주소를 한 줄에 하나씩&#10;&#10;업체명|주소 형태도 가능"></textarea>
-    <p class="hint">한 줄에 주소 하나씩. 업체명|주소 형태도 가능.</p>
-    <div class="modal-btn-row">
-      <button class="modal-btn cancel" onclick="closePasteModal()">취소</button>
-      <button class="modal-btn submit" onclick="processPaste()">추가하기</button>
-    </div>
-  </div>
+<div class="tab-menu">
+<div class="tab-item active" onclick="switchTab('list')">📋 배송/루트</div>
+<div class="tab-item" onclick="switchTab('map')">🗺️ 지도</div>
+<div class="tab-item" onclick="switchTab('input')">➕ 주소입력</div>
 </div>
-
-<!-- 메시지 모달 -->
-<div class="modal-overlay" id="messageModal">
-  <div class="modal-content">
-    <h3>💬 관리자 메시지</h3>
-    <div id="messageList" style="max-height:400px;overflow-y:auto;">메시지 없음</div>
-    <div class="modal-btn-row"><button class="modal-btn cancel" onclick="closeMessageModal()" style="flex:1;">닫기</button></div>
-  </div>
+<div class="tab-content active" id="tabList">
+<div class="route-section"><h4>🛣️ 루트 설정</h4><div class="route-btns">
+<button class="route-btn primary" onclick="autoSortRoute('near')">🚀 가까운순</button>
+<button class="route-btn secondary" onclick="autoSortRoute('far')">🔄 먼곳부터</button>
+<button class="route-btn save" onclick="saveCurrentRoute()">💾 저장</button>
+</div></div>
+<div id="deliveryList"></div>
 </div>
-
+<div class="tab-content" id="tabMap">
+<div class="quick-actions">
+<button class="quick-btn" onclick="startPinTouchMode()" id="mapClickModeBtn">📌 핀 터치로 순서 정하기</button>
+<button class="quick-btn" onclick="fitMapBounds()">🔍 전체 보기</button>
+</div>
+<div class="pin-touch-bar" id="pinTouchBar">
+<div style="font-size:13px;font-weight:600;color:#856404;margin-bottom:8px;">📌 핀을 순서대로 터치하세요</div>
+<div id="ptSelected" style="font-size:12px;color:#666;margin-bottom:8px;">선택: 0개</div>
+<div class="pt-btns">
+<button onclick="applyPinTouchOrder()" style="background:#0066ff;color:#fff;">✅ 적용</button>
+<button onclick="resetPinTouch()" style="background:#f0f0f0;color:#333;">🔄 초기화</button>
+<button onclick="cancelPinTouch()" style="background:#ef4444;color:#fff;">❌ 취소</button>
+</div>
+</div>
+<div id="mapContainer"></div>
+</div>
+<div class="tab-content" id="tabInput">
+<div class="input-section"><h4>📍 출발지 설정</h4>
+<div class="input-row"><input type="text" id="startAddrInput" placeholder="출발지 주소"><button onclick="useGPS('start')">📍</button><button onclick="searchAddress('start')">검색</button></div>
+<div style="font-size:11px;color:#888;margin-top:4px;" id="startAddrInfo"></div>
+</div>
+<div class="input-section"><h4>🏢 배송지 추가</h4>
+<div style="position:relative;"><div class="input-row"><input type="text" id="companyInput" placeholder="업체명 (자동완성)" oninput="onCompanyInput(this.value)"></div><div class="autocomplete-list" id="companyAutoList"></div></div>
+<div class="input-row"><input type="text" id="addrInput" placeholder="주소 입력"><button onclick="searchAddress('dest')">검색</button></div>
+<div class="input-row"><input type="text" id="memoInput" placeholder="메모 (선택)"><button onclick="addDelivery()" style="background:#22c55e;">추가</button></div>
+</div>
+<div class="input-section"><h4>📋 빠른 입력</h4><div class="quick-actions">
+<button class="quick-btn" onclick="loadFixedRoutes()">📌 고정 배송지</button>
+<button class="quick-btn" onclick="showPasteModal()">📄 붙여넣기</button>
+<button class="quick-btn" onclick="loadSavedRoute()">💾 저장된 루트</button>
+</div></div>
+<div class="input-section"><h4>🔙 복귀지 설정</h4>
+<label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="useReturn" onchange="toggleReturnAddr()"> 복귀지 사용</label>
+<div id="returnAddrDiv" style="display:none;margin-top:8px;">
+<div class="input-row"><input type="text" id="returnAddrInput" placeholder="복귀지 주소"><button onclick="copyStartToReturn()">출발지=</button><button onclick="searchAddress('return')">검색</button></div>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-overlay" id="completeModal"><div class="modal-content">
+<h3>📦 배송 완료 처리</h3>
+<div id="completeCompanyName" style="font-size:15px;font-weight:700;text-align:center;margin-bottom:16px;"></div>
+<label>배송 상태</label>
+<div class="radio-group" id="deliveryStatus">
+<div class="radio-btn selected" data-value="완료" onclick="selectRadio(this,'deliveryStatus')">✅ 완료</div>
+<div class="radio-btn" data-value="부재" onclick="selectRadio(this,'deliveryStatus')">🚫 부재</div>
+<div class="radio-btn" data-value="반송" onclick="selectRadio(this,'deliveryStatus')">↩️ 반송</div>
+</div>
+<label>결제 여부</label>
+<div class="radio-group" id="paymentStatus">
+<div class="radio-btn selected" data-value="완료" onclick="selectRadio(this,'paymentStatus')">💰 완료</div>
+<div class="radio-btn" data-value="미수" onclick="selectRadio(this,'paymentStatus')">⏳ 미수</div>
+</div>
+<label>결제 방식</label>
+<div class="radio-group" id="paymentMethod">
+<div class="radio-btn selected" data-value="카드" onclick="selectRadio(this,'paymentMethod')">💳 카드</div>
+<div class="radio-btn" data-value="현금" onclick="selectRadio(this,'paymentMethod')">💵 현금</div>
+</div>
+<label>업체명</label><input type="text" id="completeCompany" placeholder="업체명">
+<label>금액</label><div class="amount-wrap"><input type="text" id="completeAmount" placeholder="금액" inputmode="numeric" oninput="formatAmountInput(this)"><span class="won">원</span></div>
+<label>영수증 사진</label>
+<div class="receipt-upload"><div id="receiptPreview">📷 아래 버튼으로 촬영 또는 선택</div>
+<input type="file" id="receiptCamera" accept="image/*" capture="environment" style="display:none">
+<input type="file" id="receiptGallery" accept="image/*" style="display:none">
+<div class="receipt-btns"><button type="button" id="btnCamera">📷 촬영</button><button type="button" id="btnGallery">🖼️ 갤러리</button></div>
+</div>
+<label>메모</label><textarea id="completeMemo" rows="2" placeholder="특이사항"></textarea>
+<div class="modal-btn-row"><button class="modal-btn cancel" onclick="closeCompleteModal()">취소</button><button class="modal-btn submit" onclick="submitComplete()">완료 처리</button></div>
+</div></div>
+<div class="next-modal" id="nextModal"><div class="next-modal-content">
+<div style="font-size:48px;margin-bottom:12px;">🚛</div>
+<div style="font-size:16px;font-weight:700;">다음 배송은</div>
+<div class="next-company" id="nextCompanyName">-</div>
+<div class="next-addr" id="nextAddress">-</div>
+<div class="next-btns"><button onclick="closeNextModal()" style="background:#f0f0f0;color:#333;">확인</button><button onclick="naviToNext()" style="background:#fee500;color:#333;">🧭 네비</button></div>
+</div></div>
+<div class="insert-modal" id="insertModal"><div class="insert-modal-content">
+<h3>📍 배송지 추가</h3>
+<div id="insertAfterInfo" style="font-size:13px;color:#666;text-align:center;margin-bottom:12px;"></div>
+<div style="position:relative;"><div class="input-row"><input type="text" id="insertCompanyInput" placeholder="업체명" oninput="onInsertCompanyInput(this.value)"></div><div class="autocomplete-list" id="insertAutoList"></div></div>
+<div class="input-row"><input type="text" id="insertAddrInput" placeholder="주소 입력"><button onclick="searchInsertAddr()">검색</button></div>
+<div class="input-row"><input type="text" id="insertMemoInput" placeholder="메모 (선택)"></div>
+<div class="modal-btn-row"><button class="modal-btn cancel" onclick="closeInsertModal()">취소</button><button class="modal-btn submit" onclick="doInsertDelivery()">추가</button></div>
+</div></div>
+<div class="paste-modal" id="pasteModal"><div class="paste-content">
+<h3>📄 주소 목록 붙여넣기</h3>
+<textarea id="pasteTextarea" placeholder="주소를 한 줄에 하나씩"></textarea>
+<p style="font-size:11px;color:#888;margin:8px 0;">업체명|주소 형태도 가능</p>
+<div class="modal-btn-row"><button class="modal-btn cancel" onclick="closePasteModal()">취소</button><button class="modal-btn submit" onclick="processPaste()">추가하기</button></div>
+</div></div>
+<div class="modal-overlay" id="messageModal"><div class="modal-content">
+<h3>💬 관리자 메시지</h3>
+<div id="messageList" style="max-height:400px;overflow-y:auto;">메시지 없음</div>
+<div class="modal-btn-row"><button class="modal-btn cancel" onclick="closeMessageModal()" style="flex:1;">닫기</button></div>
+</div></div>
 <div class="toast" id="toast"></div>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=de53d7ee76e21e3172148febe67df5f1&libraries=services&autoload=false"></script>
 <script>
-// ==================== Firebase 초기화 ====================
-const firebaseConfig = {
-  apiKey: "AIzaSyBt_m9ZvwG15yxeZVAhm1SsjlEcLYLvZoI",
-  authDomain: "delivery-route0304.firebaseapp.com",
-  projectId: "delivery-route0304",
-  storageBucket: "delivery-route0304.firebasestorage.app",
-  messagingSenderId: "262012140829",
-  appId: "1:262012140829:web:e059d0d735b662d3f8f5f4"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const storage = firebase.storage();
+var db,storage,map=null,markers=[],polyline=null,mapClickMode=false,mapClickOrder=[];
+var currentCompanyCode='',currentCompanyId='',currentCourseId='',currentCourseName='',currentDriverName='';
+var deliveries=[],registeredCompanies=[],receiptFile=null,completeTargetIndex=-1,insertAfterIndex=-1,courseLoadTimer=null;
+var startLocation={lat:37.5665,lng:126.9780,address:''};
+var returnLocation={lat:0,lng:0,address:'',use:false};
+var AVG_SPEED=30;
 
-// ==================== 전역 변수 ====================
-let currentCompanyCode='',currentCompanyId='',currentCourseId='',currentCourseName='',currentDriverName='';
-let deliveries=[];
-let startLocation={lat:37.5665,lng:126.9780,address:''};
-let returnLocation={lat:0,lng:0,address:'',use:false};
-let map=null,markers=[],polyline=null;
-let mapClickMode=false,mapClickOrder=[];
-let registeredCompanies=[];
-let completeTargetIndex=-1,insertAfterIndex=-1;
-let receiptFile=null;
-let courseLoadTimer=null;
-const AVG_SPEED=30;
+// Firebase
+var fc={apiKey:"AIzaSyBt_m9ZvwG15yxeZVAhm1SsjlEcLYLvZoI",authDomain:"delivery-route0304.firebaseapp.com",projectId:"delivery-route0304",storageBucket:"delivery-route0304.firebasestorage.app",messagingSenderId:"262012140829",appId:"1:262012140829:web:e059d0d735b662d3f8f5f4"};
+firebase.initializeApp(fc);
+db=firebase.firestore();
+storage=firebase.storage();
 
-// ==================== 유틸리티 ====================
-function getTodayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function showToast(msg,duration){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';t.style.opacity='1';clearTimeout(t._timer);t._timer=setTimeout(()=>{t.style.opacity='0';setTimeout(()=>{t.style.display='none';},300);},duration||3000);}
-function formatAmountInput(el){let v=el.value.replace(/[^\d]/g,'');if(v)el.value=Number(v).toLocaleString();else el.value='';}
-function getAmountNumber(str){return parseInt((str||'').replace(/[^\d]/g,''))||0;}
+// 유틸
+function getTodayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function showToast(m,dur){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.style.display='none';},300);},dur||3000);}
+function formatAmountInput(el){var v=el.value.replace(/[^\d]/g,'');el.value=v?Number(v).toLocaleString():'';}
+function getAmountNumber(s){return parseInt((s||'').replace(/[^\d]/g,''))||0;}
 function formatAmount(n){return n?Number(n).toLocaleString()+'원':'0원';}
-function calcDistance(lat1,lng1,lat2,lng2){const R=6371;const dLat=(lat2-lat1)*Math.PI/180;const dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+function calcDistance(a,b,c,d){var R=6371,dL=(c-a)*Math.PI/180,dG=(d-b)*Math.PI/180,x=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dG/2)*Math.sin(dG/2);return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function makeDelivery(co,ad,me,la,ln){return{company:co||'',address:ad||'',memo:me||'',lat:la||0,lng:ln||0,status:'pending',paymentStatus:'',paymentMethod:'',amount:0,completedAt:'',receiptUrl:'',adminMemo:'',isUrgent:false,isPickup:false,pickupId:'',transferId:'',eta:''};}
 
-// ==================== 코스 로딩 (핵심 수정) ====================
-document.getElementById('companyCode').addEventListener('input', function(){
+// 코스 로딩
+document.getElementById('companyCode').addEventListener('input',function(){
   clearTimeout(courseLoadTimer);
-  const code = this.value.trim();
-  if(code.length >= 4){
+  var code=this.value.trim();
+  if(code.length>=4){
     document.getElementById('courseLoading').style.display='block';
     document.getElementById('courseSelect').innerHTML='<option value="">불러오는 중...</option>';
-    courseLoadTimer = setTimeout(()=>{ loadCourses(code); }, 500);
-  } else {
+    courseLoadTimer=setTimeout(function(){loadCourses(code);},500);
+  }else{
     document.getElementById('courseSelect').innerHTML='<option value="">회사 코드를 먼저 입력하세요</option>';
     document.getElementById('courseLoading').style.display='none';
   }
 });
+document.getElementById('companyCode').addEventListener('blur',function(){var c=this.value.trim();if(c.length>=4)loadCourses(c);});
 
-document.getElementById('companyCode').addEventListener('blur', function(){
-  const code = this.value.trim();
-  if(code.length >= 4) loadCourses(code);
-});
-
-async function loadCourses(code){
-  try {
-    const upperCode = code.toUpperCase();
-    const snap = await db.collection('companies').where('code','==',upperCode).get();
-    const sel = document.getElementById('courseSelect');
-    const loading = document.getElementById('courseLoading');
-
-    if(snap.empty){
-      sel.innerHTML='<option value="">❌ 회사 코드를 확인하세요</option>';
-      loading.style.display='none';
-      currentCompanyId='';
-      return;
-    }
-
-    currentCompanyId = snap.docs[0].id;
-    const cSnap = await db.collection('companies').doc(currentCompanyId).collection('courses').orderBy('order').get();
-
+function loadCourses(code){
+  var uc=code.toUpperCase();
+  db.collection('companies').where('code','==',uc).get().then(function(snap){
+    var sel=document.getElementById('courseSelect');
+    var ld=document.getElementById('courseLoading');
+    if(snap.empty){sel.innerHTML='<option value="">❌ 회사 코드 확인 필요</option>';ld.style.display='none';currentCompanyId='';return;}
+    currentCompanyId=snap.docs[0].id;
+    return db.collection('companies').doc(currentCompanyId).collection('courses').orderBy('order').get();
+  }).then(function(cSnap){
+    if(!cSnap)return;
+    var sel=document.getElementById('courseSelect');
     sel.innerHTML='<option value="">코스를 선택하세요</option>';
-    if(cSnap.empty){
-      sel.innerHTML='<option value="">등록된 코스가 없습니다</option>';
-      loading.style.display='none';
-      return;
-    }
-
-    cSnap.forEach(doc=>{
-      const o=document.createElement('option');
-      o.value=doc.id;
-      o.textContent=doc.data().name;
-      sel.appendChild(o);
-    });
-
-    loading.style.display='none';
-
-    // 저장된 코스 자동 선택
-    const saved=localStorage.getItem('deliveryLogin');
-    if(saved){
-      const d=JSON.parse(saved);
-      if(d.courseId){
-        sel.value=d.courseId;
-        if(!sel.value) sel.selectedIndex=0;
-      }
-    }
-  } catch(e){
-    console.error('코스 로드 오류:',e);
-    document.getElementById('courseSelect').innerHTML='<option value="">로드 오류 - 다시 시도</option>';
+    if(cSnap.empty){sel.innerHTML='<option value="">등록된 코스 없음</option>';document.getElementById('courseLoading').style.display='none';return;}
+    cSnap.forEach(function(doc){var o=document.createElement('option');o.value=doc.id;o.textContent=doc.data().name;sel.appendChild(o);});
     document.getElementById('courseLoading').style.display='none';
-  }
+    var saved=localStorage.getItem('deliveryLogin');
+    if(saved){var d=JSON.parse(saved);if(d.courseId){sel.value=d.courseId;}}
+  }).catch(function(e){
+    console.error('코스 로드 오류:',e);
+    document.getElementById('courseSelect').innerHTML='<option value="">로드 오류</option>';
+    document.getElementById('courseLoading').style.display='none';
+  });
 }
 
-// ==================== 자동 로그인 ====================
-window.onload = async function(){
-  const saved = localStorage.getItem('deliveryLogin');
-  if(!saved) return;
-
-  const data = JSON.parse(saved);
-  if(!data.companyCode || !data.password || !data.courseId || !data.driverName){
-    // 부분 정보만 채우기
-    if(data.companyCode) document.getElementById('companyCode').value=data.companyCode;
-    if(data.password) document.getElementById('driverPassword').value=data.password;
-    if(data.driverName) document.getElementById('driverName').value=data.driverName;
-    if(data.companyCode) loadCourses(data.companyCode);
+// 자동 로그인
+window.onload=function(){
+  var saved=localStorage.getItem('deliveryLogin');
+  if(!saved)return;
+  var data=JSON.parse(saved);
+  if(!data.companyCode||!data.password||!data.courseId||!data.driverName){
+    if(data.companyCode){document.getElementById('companyCode').value=data.companyCode;loadCourses(data.companyCode);}
+    if(data.password)document.getElementById('driverPassword').value=data.password;
+    if(data.driverName)document.getElementById('driverName').value=data.driverName;
     return;
   }
-
-  // 자동 로그인 시도
-  try {
-    const compSnap = await db.collection('companies').where('code','==',data.companyCode.toUpperCase()).get();
-    if(compSnap.empty) throw new Error('no company');
-
-    const compDoc = compSnap.docs[0];
-    const compData = compDoc.data();
-    if(compData.driverPassword !== data.password) throw new Error('wrong pw');
-
-    currentCompanyCode = data.companyCode.toUpperCase();
-    currentCompanyId = compDoc.id;
-    currentCourseId = data.courseId;
-    currentDriverName = data.driverName;
-
-    const courseDoc = await db.collection('companies').doc(currentCompanyId)
-      .collection('courses').doc(data.courseId).get();
-    if(!courseDoc.exists) throw new Error('no course');
-    currentCourseName = courseDoc.data().name;
-
+  db.collection('companies').where('code','==',data.companyCode.toUpperCase()).get().then(function(snap){
+    if(snap.empty)throw new Error('no');
+    var doc=snap.docs[0],cd=doc.data();
+    if(cd.driverPassword!==data.password)throw new Error('pw');
+    currentCompanyCode=data.companyCode.toUpperCase();currentCompanyId=doc.id;currentCourseId=data.courseId;currentDriverName=data.driverName;
+    return db.collection('companies').doc(currentCompanyId).collection('courses').doc(data.courseId).get();
+  }).then(function(cDoc){
+    if(!cDoc||!cDoc.exists)throw new Error('nc');
+    currentCourseName=cDoc.data().name;
     showMainScreen();
-    return;
-  } catch(e){
+  }).catch(function(e){
     console.log('자동로그인 실패:',e.message);
-  }
-
-  // 실패 시 정보만 채우기
-  document.getElementById('companyCode').value=data.companyCode||'';
-  document.getElementById('driverPassword').value=data.password||'';
-  document.getElementById('driverName').value=data.driverName||'';
-  document.getElementById('savedInfo').style.display='block';
-  document.getElementById('savedInfoText').textContent='저장된 정보: '+(data.companyCode||'');
-  if(data.companyCode) loadCourses(data.companyCode);
+    document.getElementById('companyCode').value=data.companyCode||'';
+    document.getElementById('driverPassword').value=data.password||'';
+    document.getElementById('driverName').value=data.driverName||'';
+    document.getElementById('savedInfo').style.display='block';
+    document.getElementById('savedInfoText').textContent='저장된 정보: '+(data.companyCode||'');
+    if(data.companyCode)loadCourses(data.companyCode);
+  });
 };
 
-function clearSavedLogin(){
-  localStorage.removeItem('deliveryLogin');
-  document.getElementById('savedInfo').style.display='none';
-  document.getElementById('companyCode').value='';
-  document.getElementById('driverPassword').value='';
-  document.getElementById('driverName').value='';
-  document.getElementById('courseSelect').innerHTML='<option value="">회사 코드를 먼저 입력하세요</option>';
-  showToast('저장된 정보 삭제됨');
-}
+function clearSavedLogin(){localStorage.removeItem('deliveryLogin');document.getElementById('savedInfo').style.display='none';document.getElementById('companyCode').value='';document.getElementById('driverPassword').value='';document.getElementById('driverName').value='';document.getElementById('courseSelect').innerHTML='<option value="">회사 코드를 먼저 입력하세요</option>';showToast('저장된 정보 삭제됨');}
 
-// ==================== 로그인 ====================
-async function doLogin(){
-  const code=document.getElementById('companyCode').value.trim().toUpperCase();
-  const pw=document.getElementById('driverPassword').value.trim();
-  const courseId=document.getElementById('courseSelect').value;
-  const name=document.getElementById('driverName').value.trim();
-  const err=document.getElementById('loginError');
+function doLogin(){
+  var code=document.getElementById('companyCode').value.trim().toUpperCase();
+  var pw=document.getElementById('driverPassword').value.trim();
+  var cid=document.getElementById('courseSelect').value;
+  var name=document.getElementById('driverName').value.trim();
+  var err=document.getElementById('loginError');
   err.style.display='none';
-
-  if(!code){err.textContent='회사 코드를 입력하세요';err.style.display='block';return;}
-  if(!pw){err.textContent='비밀번호를 입력하세요';err.style.display='block';return;}
-  if(!courseId){err.textContent='코스를 선택하세요';err.style.display='block';return;}
-  if(!name){err.textContent='기사 이름을 입력하세요';err.style.display='block';return;}
-
-  document.getElementById('loginBtn').textContent='로그인 중...';
-  document.getElementById('loginBtn').disabled=true;
-
-  try {
-    const snap=await db.collection('companies').where('code','==',code).get();
-    if(snap.empty){err.textContent='회사 코드를 찾을 수 없습니다';err.style.display='block';resetLoginBtn();return;}
-
-    const compDoc=snap.docs[0];
-    const compData=compDoc.data();
-    if(compData.driverPassword!==pw){err.textContent='비밀번호가 일치하지 않습니다';err.style.display='block';resetLoginBtn();return;}
-
-    currentCompanyCode=code;
-    currentCompanyId=compDoc.id;
-    currentCourseId=courseId;
-    currentDriverName=name;
-
-    const cDoc=await db.collection('companies').doc(currentCompanyId).collection('courses').doc(courseId).get();
+  if(!code||!pw||!cid||!name){err.textContent='모든 항목을 입력하세요';err.style.display='block';return;}
+  document.getElementById('loginBtn').textContent='로그인 중...';document.getElementById('loginBtn').disabled=true;
+  db.collection('companies').where('code','==',code).get().then(function(snap){
+    if(snap.empty)throw{msg:'회사 코드 없음'};
+    var doc=snap.docs[0],cd=doc.data();
+    if(cd.driverPassword!==pw)throw{msg:'비밀번호 불일치'};
+    currentCompanyCode=code;currentCompanyId=doc.id;currentCourseId=cid;currentDriverName=name;
+    return db.collection('companies').doc(currentCompanyId).collection('courses').doc(cid).get();
+  }).then(function(cDoc){
     currentCourseName=cDoc.exists?cDoc.data().name:'코스';
-
-    localStorage.setItem('deliveryLogin',JSON.stringify({companyCode:code,password:pw,courseId:courseId,driverName:name}));
-
-    const today=getTodayStr();
-    await db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId)
-      .collection('dailyLogs').doc(today).set({driverName:name,loginTime:firebase.firestore.FieldValue.serverTimestamp(),date:today},{merge:true});
-
+    localStorage.setItem('deliveryLogin',JSON.stringify({companyCode:currentCompanyCode,password:pw,courseId:cid,driverName:name}));
+    var today=getTodayStr();
+    return db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('dailyLogs').doc(today).set({driverName:name,loginTime:firebase.firestore.FieldValue.serverTimestamp(),date:today},{merge:true});
+  }).then(function(){
     showMainScreen();
-  } catch(e){
-    err.textContent='로그인 중 오류가 발생했습니다';
-    err.style.display='block';
-    console.error(e);
-  }
-  resetLoginBtn();
+  }).catch(function(e){
+    err.textContent=e.msg||'로그인 오류';err.style.display='block';
+  }).finally(function(){document.getElementById('loginBtn').textContent='배송 시작';document.getElementById('loginBtn').disabled=false;});
 }
-
-function resetLoginBtn(){document.getElementById('loginBtn').textContent='배송 시작';document.getElementById('loginBtn').disabled=false;}
 
 function showMainScreen(){
-  document.getElementById('loginScreen').style.display='none';
-  document.getElementById('mainScreen').style.display='block';
-  document.getElementById('topCourseName').textContent=currentCourseName;
-  document.getElementById('topDriverName').textContent=currentDriverName;
-  loadRegisteredCompanies();
-  loadTodayDeliveries();
-  loadMessages();
-  loadWeather();
-  startRealtimeListeners();
-  setupReceiptButtons();
+  document.getElementById('loginScreen').style.display='none';document.getElementById('mainScreen').style.display='block';
+  document.getElementById('topCourseName').textContent=currentCourseName;document.getElementById('topDriverName').textContent=currentDriverName;
+  loadRegisteredCompanies();loadTodayDeliveries();loadMessages();loadWeather();startRealtimeListeners();
+  document.getElementById('btnCamera').onclick=function(e){e.preventDefault();document.getElementById('receiptCamera').click();};
+  document.getElementById('btnGallery').onclick=function(e){e.preventDefault();document.getElementById('receiptGallery').click();};
+  document.getElementById('receiptCamera').onchange=function(){handleRF(this);};
+  document.getElementById('receiptGallery').onchange=function(){handleRF(this);};
 }
 
-function doLogout(){
-  if(!confirm('로그아웃 하시겠습니까?'))return;
-  document.getElementById('mainScreen').style.display='none';
-  document.getElementById('loginScreen').style.display='flex';
-  deliveries=[];
-  map=null;markers=[];polyline=null;
-}
+function doLogout(){if(!confirm('로그아웃?'))return;document.getElementById('mainScreen').style.display='none';document.getElementById('loginScreen').style.display='flex';deliveries=[];map=null;markers=[];polyline=null;}
 
-// ==================== 영수증 버튼 ====================
-function setupReceiptButtons(){
-  const btnCam=document.getElementById('btnCamera');
-  const btnGal=document.getElementById('btnGallery');
-  const camInput=document.getElementById('receiptCamera');
-  const galInput=document.getElementById('receiptGallery');
+function handleRF(input){var f=input.files[0];if(!f)return;if(f.size>10*1024*1024){showToast('10MB 이하만');input.value='';return;}receiptFile=f;var r=new FileReader();r.onload=function(e){document.getElementById('receiptPreview').innerHTML='<img src="'+e.target.result+'" style="max-width:100%;max-height:200px;border-radius:8px;"><div style="font-size:12px;color:#22c55e;margin-top:6px;">✅ 선택됨</div>';};r.readAsDataURL(f);}
 
-  btnCam.onclick=function(e){e.preventDefault();e.stopPropagation();camInput.click();};
-  btnGal.onclick=function(e){e.preventDefault();e.stopPropagation();galInput.click();};
-  camInput.onchange=function(){handleReceiptFile(this);};
-  galInput.onchange=function(){handleReceiptFile(this);};
-}
+function loadWeather(){navigator.geolocation.getCurrentPosition(function(pos){fetch('https://api.openweathermap.org/data/2.5/weather?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude+'&appid=199cc701bcedc4032dec344b291c8b4d&units=metric&lang=kr').then(function(r){return r.json();}).then(function(d){var ic={'Clear':'☀️','Clouds':'☁️','Rain':'🌧️','Snow':'❄️','Thunderstorm':'⛈️','Drizzle':'🌦️','Mist':'🌫️','Fog':'🌫️'};document.getElementById('weatherIcon').textContent=ic[d.weather[0].main]||'🌤️';var h=Math.round(d.main.temp)+'°C '+d.weather[0].description;if(['Rain','Drizzle','Thunderstorm','Snow'].indexOf(d.weather[0].main)>=0)h+=' <span class="weather-warn">⚠️ 우천!</span>';document.getElementById('weatherText').innerHTML=h;}).catch(function(){document.getElementById('weatherText').textContent='날씨 없음';});},function(){document.getElementById('weatherText').textContent='날씨 없음';},{timeout:5000});}
 
-function handleReceiptFile(input){
-  const file=input.files[0];
-  if(!file)return;
-  if(file.size>10*1024*1024){showToast('10MB 이하만 가능');input.value='';return;}
-  receiptFile=file;
-  const reader=new FileReader();
-  reader.onload=function(e){
-    document.getElementById('receiptPreview').innerHTML=
-      '<img src="'+e.target.result+'" style="max-width:100%;max-height:200px;border-radius:8px;">'+
-      '<div style="font-size:12px;color:#22c55e;margin-top:6px;">✅ 사진 선택됨 ('+(file.size/1024).toFixed(0)+'KB)</div>';
-  };
-  reader.readAsDataURL(file);
-}
+function loadRegisteredCompanies(){db.collection('companies').doc(currentCompanyId).collection('clients').orderBy('name').get().then(function(s){registeredCompanies=[];s.forEach(function(d){registeredCompanies.push(Object.assign({id:d.id},d.data()));});}).catch(function(){});}
 
-// ==================== 날씨 ====================
-async function loadWeather(){
-  try {
-    const pos=await new Promise((res,rej)=>{navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000});});
-    const r=await fetch('https://api.openweathermap.org/data/2.5/weather?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude+'&appid=199cc701bcedc4032dec344b291c8b4d&units=metric&lang=kr');
-    const d=await r.json();
-    const icons={'Clear':'☀️','Clouds':'☁️','Rain':'🌧️','Drizzle':'🌦️','Thunderstorm':'⛈️','Snow':'❄️','Mist':'🌫️','Fog':'🌫️','Haze':'🌫️'};
-    document.getElementById('weatherIcon').textContent=icons[d.weather[0].main]||'🌤️';
-    let h=Math.round(d.main.temp)+'°C '+d.weather[0].description;
-    if(['Rain','Drizzle','Thunderstorm','Snow'].includes(d.weather[0].main))h+=' <span class="weather-warn">⚠️ 우천 주의!</span>';
-    document.getElementById('weatherText').innerHTML=h;
-  } catch(e){document.getElementById('weatherText').textContent='날씨 정보 없음';}
-}
+function onCompanyInput(v){showAC(v,'companyAutoList','companyInput','addrInput');}
+function onInsertCompanyInput(v){showAC(v,'insertAutoList','insertCompanyInput','insertAddrInput');}
+function showAC(val,lid,cid,aid){var l=document.getElementById(lid);if(!val){l.style.display='none';return;}var f=registeredCompanies.filter(function(c){return c.name.toLowerCase().indexOf(val.toLowerCase())>=0||(c.address&&c.address.toLowerCase().indexOf(val.toLowerCase())>=0);});if(!f.length){l.style.display='none';return;}l.innerHTML=f.slice(0,10).map(function(c){return '<div class="autocomplete-item" onclick="selAC(\''+c.name.replace(/'/g,"\\'")+'\',\''+(c.address||'').replace(/'/g,"\\'")+'\','+( c.lat||0)+','+(c.lng||0)+',\''+c.id+'\',\''+cid+'\',\''+aid+'\',\''+lid+'\')"><div class="item-name">'+c.name+'</div><div class="item-addr">'+(c.address||'주소 미등록')+'</div></div>';}).join('');l.style.display='block';}
+function selAC(n,a,la,ln,ci,cid,aid,lid){document.getElementById(cid).value=n;if(a)document.getElementById(aid).value=a;document.getElementById(aid).dataset.lat=la;document.getElementById(aid).dataset.lng=ln;document.getElementById(aid).dataset.clientId=ci;document.getElementById(lid).style.display='none';}
 
-// ==================== 등록업체 자동완성 ====================
-async function loadRegisteredCompanies(){
-  try {
-    const s=await db.collection('companies').doc(currentCompanyId).collection('clients').orderBy('name').get();
-    registeredCompanies=[];
-    s.forEach(d=>{registeredCompanies.push({id:d.id,...d.data()});});
-  } catch(e){console.error('업체 로드 오류:',e);}
-}
-
-function onCompanyInput(v){showAutoComplete(v,'companyAutoList','companyInput','addrInput');}
-function onInsertCompanyInput(v){showAutoComplete(v,'insertAutoList','insertCompanyInput','insertAddrInput');}
-
-function showAutoComplete(val,listId,compId,addrId){
-  const list=document.getElementById(listId);
-  if(!val||val.length<1){list.style.display='none';return;}
-  const filtered=registeredCompanies.filter(c=>
-    c.name.toLowerCase().includes(val.toLowerCase())||
-    (c.address&&c.address.toLowerCase().includes(val.toLowerCase()))
-  );
-  if(!filtered.length){list.style.display='none';return;}
-  list.innerHTML=filtered.slice(0,10).map(c=>{
-    const escapeName=c.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
-    const escapeAddr=(c.address||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
-    return '<div class="autocomplete-item" onclick="selectAutoCompany(\''+escapeName+'\',\''+escapeAddr+'\','+(c.lat||0)+','+(c.lng||0)+',\''+c.id+'\',\''+compId+'\',\''+addrId+'\',\''+listId+'\')">'+
-      '<div class="item-name">'+c.name+'</div>'+
-      '<div class="item-addr">'+(c.address||'주소 미등록')+'</div></div>';
-  }).join('');
-  list.style.display='block';
-}
-
-function selectAutoCompany(name,addr,lat,lng,clientId,compId,addrId,listId){
-  document.getElementById(compId).value=name;
-  if(addr)document.getElementById(addrId).value=addr;
-  document.getElementById(listId).style.display='none';
-  // 좌표 임시 저장
-  document.getElementById(addrId).dataset.lat=lat;
-  document.getElementById(addrId).dataset.lng=lng;
-  document.getElementById(addrId).dataset.clientId=clientId;
-}
-
-// ==================== 주소 검색 ====================
 function searchAddress(type){
-  let inputId,infoId;
-  if(type==='start'){inputId='startAddrInput';infoId='startAddrInfo';}
-  else if(type==='return'){inputId='returnAddrInput';infoId=null;}
-  else if(type==='dest'){inputId='addrInput';infoId=null;}
-  else return;
-
-  const query=document.getElementById(inputId).value.trim();
-  if(!query){showToast('주소를 입력하세요');return;}
-
-  const geocoder=new kakao.maps.services.Geocoder();
-  geocoder.addressSearch(query,function(result,status){
-    if(status===kakao.maps.services.Status.OK){
-      applyAddress(type,result[0].address_name||query,parseFloat(result[0].y),parseFloat(result[0].x));
-    } else {
-      // Places 검색 시도
-      const places=new kakao.maps.services.Places();
-      places.keywordSearch(query,function(data,status2){
-        if(status2===kakao.maps.services.Status.OK){
-          applyAddress(type,data[0].address_name||data[0].place_name,parseFloat(data[0].y),parseFloat(data[0].x));
-        } else {
-          showToast('주소를 찾을 수 없습니다');
-        }
-      });
-    }
+  var inputId=type==='start'?'startAddrInput':(type==='return'?'returnAddrInput':'addrInput');
+  var q=document.getElementById(inputId).value.trim();
+  if(!q){showToast('주소를 입력하세요');return;}
+  var geo=new kakao.maps.services.Geocoder();
+  geo.addressSearch(q,function(r,s){
+    if(s===kakao.maps.services.Status.OK){applyAddr(type,r[0].address_name||q,parseFloat(r[0].y),parseFloat(r[0].x));}
+    else{var pl=new kakao.maps.services.Places();pl.keywordSearch(q,function(d,s2){if(s2===kakao.maps.services.Status.OK)applyAddr(type,d[0].address_name||d[0].place_name,parseFloat(d[0].y),parseFloat(d[0].x));else showToast('주소를 찾을 수 없습니다');});}
   });
 }
-
 function searchInsertAddr(){
-  const query=document.getElementById('insertAddrInput').value.trim();
-  if(!query){showToast('주소를 입력하세요');return;}
-  const geocoder=new kakao.maps.services.Geocoder();
-  geocoder.addressSearch(query,function(result,status){
-    if(status===kakao.maps.services.Status.OK){
-      const el=document.getElementById('insertAddrInput');
-      el.value=result[0].address_name||query;
-      el.dataset.lat=result[0].y;
-      el.dataset.lng=result[0].x;
-      showToast('주소 확인됨');
-    } else {
-      const places=new kakao.maps.services.Places();
-      places.keywordSearch(query,function(data,status2){
-        if(status2===kakao.maps.services.Status.OK){
-          const el=document.getElementById('insertAddrInput');
-          el.value=data[0].address_name||data[0].place_name;
-          el.dataset.lat=data[0].y;
-          el.dataset.lng=data[0].x;
-          showToast('주소 확인됨');
-        } else { showToast('주소를 찾을 수 없습니다'); }
-      });
-    }
-  });
+  var q=document.getElementById('insertAddrInput').value.trim();if(!q){showToast('주소 입력');return;}
+  var geo=new kakao.maps.services.Geocoder();
+  geo.addressSearch(q,function(r,s){if(s===kakao.maps.services.Status.OK){var el=document.getElementById('insertAddrInput');el.value=r[0].address_name||q;el.dataset.lat=r[0].y;el.dataset.lng=r[0].x;showToast('주소 확인됨');}else{var pl=new kakao.maps.services.Places();pl.keywordSearch(q,function(d,s2){if(s2===kakao.maps.services.Status.OK){var el=document.getElementById('insertAddrInput');el.value=d[0].address_name||d[0].place_name;el.dataset.lat=d[0].y;el.dataset.lng=d[0].x;showToast('주소 확인됨');}else showToast('못찾음');});}});
 }
-
-function applyAddress(type,address,lat,lng){
-  if(type==='start'){
-    startLocation={lat:lat,lng:lng,address:address};
-    document.getElementById('startAddrInput').value=address;
-    document.getElementById('startAddrInfo').textContent='✅ '+address+' ('+lat.toFixed(4)+', '+lng.toFixed(4)+')';
-    showToast('출발지 설정 완료');
-    updateETA();
-    if(map)updateMapMarkers();
-  } else if(type==='return'){
-    returnLocation={lat:lat,lng:lng,address:address,use:true};
-    document.getElementById('returnAddrInput').value=address;
-    document.getElementById('useReturn').checked=true;
-     showToast('복귀지 설정 완료');
-    updateETA();
-    if(map)updateMapMarkers();
-  } else if(type==='dest'){
-    document.getElementById('addrInput').value=address;
-    document.getElementById('addrInput').dataset.lat=lat;
-    document.getElementById('addrInput').dataset.lng=lng;
-    showToast('주소 확인됨');
-  }
+function applyAddr(type,addr,lat,lng){
+  if(type==='start'){startLocation={lat:lat,lng:lng,address:addr};document.getElementById('startAddrInput').value=addr;document.getElementById('startAddrInfo').textContent='✅ '+addr;showToast('출발지 설정');updateETA();if(map)updateMapMarkers();}
+  else if(type==='return'){returnLocation={lat:lat,lng:lng,address:addr,use:true};document.getElementById('returnAddrInput').value=addr;document.getElementById('useReturn').checked=true;document.getElementById('returnAddrDiv').style.display='block';showToast('복귀지 설정');updateETA();if(map)updateMapMarkers();}
+  else if(type==='dest'){document.getElementById('addrInput').value=addr;document.getElementById('addrInput').dataset.lat=lat;document.getElementById('addrInput').dataset.lng=lng;showToast('주소 확인됨');}
 }
-
-function useGPS(type){
-  showToast('GPS 위치 확인 중...');
-  navigator.geolocation.getCurrentPosition(function(pos){
-    const lat=pos.coords.latitude;
-    const lng=pos.coords.longitude;
-    const geocoder=new kakao.maps.services.Geocoder();
-    geocoder.coord2Address(lng,lat,function(result,status){
-      const addr=status===kakao.maps.services.Status.OK?(result[0].road_address?result[0].road_address.address_name:result[0].address.address_name):'현재 위치';
-      applyAddress(type,addr,lat,lng);
-    });
-  },function(err){showToast('GPS 사용 불가');},{timeout:10000});
-}
-
-function toggleReturnAddr(){
-  const use=document.getElementById('useReturn').checked;
-  document.getElementById('returnAddrDiv').style.display=use?'block':'none';
-  returnLocation.use=use;
-  if(!use){returnLocation.lat=0;returnLocation.lng=0;returnLocation.address='';}
-  updateETA();if(map)updateMapMarkers();
-}
-
-function copyStartToReturn(){
-  if(!startLocation.address){showToast('출발지를 먼저 설정하세요');return;}
-  returnLocation={lat:startLocation.lat,lng:startLocation.lng,address:startLocation.address,use:true};
-  document.getElementById('returnAddrInput').value=startLocation.address;
-  document.getElementById('useReturn').checked=true;
-  document.getElementById('returnAddrDiv').style.display='block';
-  showToast('출발지를 복귀지로 설정');
-  updateETA();if(map)updateMapMarkers();
-}
-
-// ==================== 배송지 추가 ====================
-function makeDelivery(company,address,memo,lat,lng){
-  return {company:company||'',address:address||'',memo:memo||'',lat:lat||0,lng:lng||0,
-    status:'pending',paymentStatus:'',paymentMethod:'',amount:0,completedAt:'',
-    receiptUrl:'',adminMemo:'',isUrgent:false,isPickup:false,pickupId:'',transferId:'',eta:''};
-}
+function useGPS(type){showToast('GPS 확인중...');navigator.geolocation.getCurrentPosition(function(pos){var geo=new kakao.maps.services.Geocoder();geo.coord2Address(pos.coords.longitude,pos.coords.latitude,function(r,s){var ad=s===kakao.maps.services.Status.OK?(r[0].road_address?r[0].road_address.address_name:r[0].address.address_name):'현재위치';applyAddr(type,ad,pos.coords.latitude,pos.coords.longitude);});},function(){showToast('GPS 불가');},{timeout:10000});}
+function toggleReturnAddr(){var u=document.getElementById('useReturn').checked;document.getElementById('returnAddrDiv').style.display=u?'block':'none';returnLocation.use=u;if(!u){returnLocation.lat=0;returnLocation.lng=0;returnLocation.address='';}updateETA();if(map)updateMapMarkers();}
+function copyStartToReturn(){if(!startLocation.address){showToast('출발지 먼저 설정');return;}returnLocation={lat:startLocation.lat,lng:startLocation.lng,address:startLocation.address,use:true};document.getElementById('returnAddrInput').value=startLocation.address;document.getElementById('useReturn').checked=true;document.getElementById('returnAddrDiv').style.display='block';showToast('출발지=복귀지');updateETA();if(map)updateMapMarkers();}
 
 function addDelivery(){
-  const company=document.getElementById('companyInput').value.trim();
-  const address=document.getElementById('addrInput').value.trim();
-  const memo=document.getElementById('memoInput').value.trim();
-  if(!address&&!company){showToast('업체명 또는 주소를 입력하세요');return;}
-
-  const addrEl=document.getElementById('addrInput');
-  let lat=parseFloat(addrEl.dataset.lat)||0;
-  let lng=parseFloat(addrEl.dataset.lng)||0;
-
-  const d=makeDelivery(company,address,memo,lat,lng);
-  deliveries.push(d);
-
-  // 좌표 없으면 검색
-  if(!lat&&address){
-    const idx=deliveries.length-1;
-    const geocoder=new kakao.maps.services.Geocoder();
-    geocoder.addressSearch(address,function(result,status){
-      if(status===kakao.maps.services.Status.OK){
-        deliveries[idx].lat=parseFloat(result[0].y);
-        deliveries[idx].lng=parseFloat(result[0].x);
-      } else {
-        const places=new kakao.maps.services.Places();
-        places.keywordSearch(address,function(data,st){
-          if(st===kakao.maps.services.Status.OK){
-            deliveries[idx].lat=parseFloat(data[0].y);
-            deliveries[idx].lng=parseFloat(data[0].x);
-          }
-          afterDeliveryChange();
-        });
-        return;
-      }
-      afterDeliveryChange();
-    });
-  }
-
-  // 업체 사용횟수 증가
-  const clientId=addrEl.dataset.clientId;
-  if(clientId){
-    db.collection('companies').doc(currentCompanyId).collection('clients').doc(clientId)
-      .update({useCount:firebase.firestore.FieldValue.increment(1)}).catch(()=>{});
-  }
-
-  // 입력 초기화
-  document.getElementById('companyInput').value='';
-  document.getElementById('addrInput').value='';
-  document.getElementById('memoInput').value='';
-  addrEl.dataset.lat='';addrEl.dataset.lng='';addrEl.dataset.clientId='';
-
-  afterDeliveryChange();
-  showToast('배송지 추가: '+(company||address));
-  switchTab('list');
+  var co=document.getElementById('companyInput').value.trim(),ad=document.getElementById('addrInput').value.trim(),me=document.getElementById('memoInput').value.trim();
+  if(!ad&&!co){showToast('업체명 또는 주소 입력');return;}
+  var el=document.getElementById('addrInput'),la=parseFloat(el.dataset.lat)||0,ln=parseFloat(el.dataset.lng)||0;
+  var d=makeDelivery(co,ad,me,la,ln);deliveries.push(d);
+  if(!la&&ad){var idx=deliveries.length-1;var geo=new kakao.maps.services.Geocoder();geo.addressSearch(ad,function(r,s){if(s===kakao.maps.services.Status.OK){deliveries[idx].lat=parseFloat(r[0].y);deliveries[idx].lng=parseFloat(r[0].x);afterDeliveryChange();}else{var pl=new kakao.maps.services.Places();pl.keywordSearch(ad,function(d2,s2){if(s2===kakao.maps.services.Status.OK){deliveries[idx].lat=parseFloat(d2[0].y);deliveries[idx].lng=parseFloat(d2[0].x);}afterDeliveryChange();});}});}
+  var ci=el.dataset.clientId;if(ci)db.collection('companies').doc(currentCompanyId).collection('clients').doc(ci).update({useCount:firebase.firestore.FieldValue.increment(1)}).catch(function(){});
+  document.getElementById('companyInput').value='';document.getElementById('addrInput').value='';document.getElementById('memoInput').value='';el.dataset.lat='';el.dataset.lng='';el.dataset.clientId='';
+  afterDeliveryChange();showToast('추가: '+(co||ad));switchTab('list');
 }
 
-function afterDeliveryChange(){
-  updateETA();
-  renderDeliveryList();
-  updateProgress();
-  if(map)updateMapMarkers();
-  saveTodayDeliveries();
-}
+function afterDeliveryChange(){updateETA();renderDeliveryList();updateProgress();if(map)updateMapMarkers();saveTodayDeliveries();}
 
-// ==================== ETA 계산 ====================
-function updateETA(){
-  if(deliveries.length===0)return;
-  let prevLat=startLocation.lat;
-  let prevLng=startLocation.lng;
-  let accTime=0;
-  const now=new Date();
+function updateETA(){if(!deliveries.length)return;var pLa=startLocation.lat,pLn=startLocation.lng,acc=0,now=new Date();deliveries.forEach(function(d){if(d.status!=='pending'){d.eta='';return;}if(d.lat&&d.lng&&pLa&&pLn){var dist=calcDistance(pLa,pLn,d.lat,d.lng)*1.4;acc+=(dist/AVG_SPEED)*60+3;var eta=new Date(now.getTime()+acc*60000);d.eta=String(eta.getHours()).padStart(2,'0')+':'+String(eta.getMinutes()).padStart(2,'0');pLa=d.lat;pLn=d.lng;}else{d.eta='';}});}
 
-  deliveries.forEach((d,i)=>{
-    if(d.status!=='pending'){d.eta='';return;}
-    if(d.lat&&d.lng&&prevLat&&prevLng){
-      const dist=calcDistance(prevLat,prevLng,d.lat,d.lng)*1.4;
-      const driveMin=(dist/AVG_SPEED)*60;
-      accTime+=driveMin+3;
-      const eta=new Date(now.getTime()+accTime*60000);
-      d.eta=eta.getHours().toString().padStart(2,'0')+':'+eta.getMinutes().toString().padStart(2,'0');
-      prevLat=d.lat;prevLng=d.lng;
-    } else {
-      d.eta='';
-    }
-  });
-}
+function saveTodayDeliveries(){if(!currentCompanyId||!currentCourseId)return;var today=getTodayStr();var sd={deliveries:deliveries.map(function(d){return{company:d.company,address:d.address,memo:d.memo,lat:d.lat,lng:d.lng,status:d.status,paymentStatus:d.paymentStatus,paymentMethod:d.paymentMethod,amount:d.amount,completedAt:d.completedAt,receiptUrl:d.receiptUrl,adminMemo:d.adminMemo,isUrgent:d.isUrgent||false,isPickup:d.isPickup||false,pickupId:d.pickupId||'',transferId:d.transferId||'',eta:d.eta||''};}),startLocation:startLocation,returnLocation:returnLocation,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('dailyLogs').doc(today).set(sd,{merge:true}).catch(function(e){console.error('저장오류:',e);});}
 
-// ==================== Firestore 저장/로드 ====================
-async function saveTodayDeliveries(){
-  if(!currentCompanyId||!currentCourseId)return;
-  try {
-    const today=getTodayStr();
-    const saveData={
-      deliveries:deliveries.map(d=>({
-        company:d.company,address:d.address,memo:d.memo,lat:d.lat,lng:d.lng,
-        status:d.status,paymentStatus:d.paymentStatus,paymentMethod:d.paymentMethod,
-        amount:d.amount,completedAt:d.completedAt,receiptUrl:d.receiptUrl,
-        adminMemo:d.adminMemo,isUrgent:d.isUrgent||false,isPickup:d.isPickup||false,
-        pickupId:d.pickupId||'',transferId:d.transferId||'',eta:d.eta||''
-      })),
-      startLocation:startLocation,
-      returnLocation:returnLocation,
-      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-    };
-    await db.collection('companies').doc(currentCompanyId)
-      .collection('courses').doc(currentCourseId)
-      .collection('dailyLogs').doc(today).set(saveData,{merge:true});
-  } catch(e){console.error('저장 오류:',e);}
-}
+function loadTodayDeliveries(){var today=getTodayStr();db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('dailyLogs').doc(today).get().then(function(doc){if(doc.exists){var data=doc.data();if(data.deliveries&&data.deliveries.length>0){deliveries=data.deliveries.map(function(d){return{company:d.company||'',address:d.address||'',memo:d.memo||'',lat:d.lat||0,lng:d.lng||0,status:d.status||'pending',paymentStatus:d.paymentStatus||'',paymentMethod:d.paymentMethod||'',amount:d.amount||0,completedAt:d.completedAt||'',receiptUrl:d.receiptUrl||'',adminMemo:d.adminMemo||'',isUrgent:d.isUrgent||false,isPickup:d.isPickup||false,pickupId:d.pickupId||'',transferId:d.transferId||'',eta:d.eta||''};});}if(data.startLocation)startLocation=data.startLocation;if(data.returnLocation){returnLocation=data.returnLocation;}if(startLocation.address)document.getElementById('startAddrInput').value=startLocation.address;if(returnLocation.use){document.getElementById('useReturn').checked=true;document.getElementById('returnAddrDiv').style.display='block';if(returnLocation.address)document.getElementById('returnAddrInput').value=returnLocation.address;}}afterDeliveryChange();}).catch(function(e){console.error('로드오류:',e);renderDeliveryList();});}
 
-async function loadTodayDeliveries(){
-  try {
-    const today=getTodayStr();
-    const doc=await db.collection('companies').doc(currentCompanyId)
-      .collection('courses').doc(currentCourseId)
-      .collection('dailyLogs').doc(today).get();
-    if(doc.exists){
-      const data=doc.data();
-      if(data.deliveries&&data.deliveries.length>0){
-        deliveries=data.deliveries.map(d=>({
-          company:d.company||'',address:d.address||'',memo:d.memo||'',
-          lat:d.lat||0,lng:d.lng||0,status:d.status||'pending',
-          paymentStatus:d.paymentStatus||'',paymentMethod:d.paymentMethod||'',
-          amount:d.amount||0,completedAt:d.completedAt||'',receiptUrl:d.receiptUrl||'',
-          adminMemo:d.adminMemo||'',isUrgent:d.isUrgent||false,isPickup:d.isPickup||false,
-          pickupId:d.pickupId||'',transferId:d.transferId||'',eta:d.eta||''
-        }));
-      }
-      if(data.startLocation){startLocation=data.startLocation;}
-      if(data.returnLocation){returnLocation=data.returnLocation;}
-
-      if(startLocation.address)document.getElementById('startAddrInput').value=startLocation.address;
-      if(returnLocation.use){
-        document.getElementById('useReturn').checked=true;
-        document.getElementById('returnAddrDiv').style.display='block';
-        if(returnLocation.address)document.getElementById('returnAddrInput').value=returnLocation.address;
-      }
-    }
-    afterDeliveryChange();
-  } catch(e){console.error('로드 오류:',e);renderDeliveryList();}
-}
-
-// ==================== 붙여넣기 ====================
 function showPasteModal(){document.getElementById('pasteModal').classList.add('show');}
 function closePasteModal(){document.getElementById('pasteModal').classList.remove('show');}
+function processPaste(){var text=document.getElementById('pasteTextarea').value.trim();if(!text){showToast('내용 입력');return;}var lines=text.split('\n').map(function(l){return l.trim();}).filter(function(l){return l;});if(!lines.length)return;showToast(lines.length+'개 처리중...');closePasteModal();var geo=new kakao.maps.services.Geocoder();var pl=new kakao.maps.services.Places();var idx=0;function processNext(){if(idx>=lines.length){afterDeliveryChange();showToast(lines.length+'개 추가 완료');document.getElementById('pasteTextarea').value='';return;}var line=lines[idx];var co='',ad=line;if(line.indexOf('|')>=0){var p=line.split('|');co=p[0].trim();ad=p[1].trim();}geo.addressSearch(ad,function(r,s){if(s===kakao.maps.services.Status.OK){deliveries.push(makeDelivery(co,r[0].address_name||ad,'',parseFloat(r[0].y),parseFloat(r[0].x)));idx++;processNext();}else{pl.keywordSearch(ad,function(r2,s2){if(s2===kakao.maps.services.Status.OK)deliveries.push(makeDelivery(co,r2[0].address_name||r2[0].place_name,'',parseFloat(r2[0].y),parseFloat(r2[0].x)));else deliveries.push(makeDelivery(co,ad,'',0,0));idx++;processNext();});}});}processNext();}
 
-async function processPaste(){
-  const text=document.getElementById('pasteTextarea').value.trim();
-  if(!text){showToast('내용을 입력하세요');return;}
-  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
-  if(!lines.length){showToast('주소가 없습니다');return;}
-
-  showToast(lines.length+'개 주소 처리 중...');
-  closePasteModal();
-
-  const geocoder=new kakao.maps.services.Geocoder();
-  const places=new kakao.maps.services.Places();
-  let added=0;
-
-  for(const line of lines){
-    let company='',address=line;
-    if(line.includes('|')){
-      const parts=line.split('|');
-      company=parts[0].trim();
-      address=parts[1].trim();
-    }
-
-    try {
-      const result=await new Promise((resolve,reject)=>{
-        geocoder.addressSearch(address,(r,s)=>{
-          if(s===kakao.maps.services.Status.OK)resolve(r[0]);
-          else reject();
-        });
-      });
-      deliveries.push(makeDelivery(company,result.address_name||address,'',parseFloat(result.y),parseFloat(result.x)));
-      added++;
-    } catch(e){
-      try {
-        const result=await new Promise((resolve,reject)=>{
-          places.keywordSearch(address,(r,s)=>{
-            if(s===kakao.maps.services.Status.OK)resolve(r[0]);
-            else reject();
-          });
-        });
-        deliveries.push(makeDelivery(company,result.address_name||result.place_name,'',parseFloat(result.y),parseFloat(result.x)));
-        added++;
-      } catch(e2){
-        deliveries.push(makeDelivery(company,address,'',0,0));
-        added++;
-      }
-    }
-  }
-
-  document.getElementById('pasteTextarea').value='';
-  afterDeliveryChange();
-  showToast(added+'개 배송지 추가 완료');
-}
-  // ==================== 배송 목록 렌더링 ====================
+// 배송 목록 렌더링
 function renderDeliveryList(){
-  const container=document.getElementById('deliveryList');
-  if(deliveries.length===0){
-    container.innerHTML='<div style="text-align:center;padding:40px 20px;color:#888;">'+
-      '<div style="font-size:48px;margin-bottom:12px;">📦</div>'+
-      '<div style="font-size:16px;font-weight:600;margin-bottom:8px;">배송지가 없습니다</div>'+
-      '<div style="font-size:13px;">주소입력 탭에서 배송지를 추가하세요</div></div>';
-    return;
-  }
+  var c=document.getElementById('deliveryList');
+  if(!deliveries.length){c.innerHTML='<div style="text-align:center;padding:40px;color:#888;"><div style="font-size:48px;margin-bottom:12px;">📦</div><div style="font-size:16px;font-weight:600;">배송지가 없습니다</div><div style="font-size:13px;margin-top:8px;">주소입력 탭에서 추가하세요</div></div>';return;}
+  var ni=deliveries.findIndex(function(d){return d.status==='pending';});
+  var h='';
+  deliveries.forEach(function(d,i){
+    var done=d.status!=='pending';var cls='delivery-item';if(done)cls+=' completed';if(i===ni)cls+=' next-delivery';if(d.isUrgent)cls+=' urgent';
+    h+='<div class="'+cls+'" id="del-'+i+'"><div class="item-top">';
+    h+='<div class="order-badge">'+(done?(d.status==='completed'?'✅':(d.status==='absent'?'🚫':'↩️')):(i+1))+'</div>';
+    h+='<div class="company-name">';
+    if(d.isUrgent)h+='<span style="color:#ef4444;font-size:11px;">🚨 </span>';
+    if(d.isPickup)h+='<span style="color:#f59e0b;font-size:11px;">📦수거 </span>';
+    h+=(d.company||'업체없음')+'</div>';
+    if(!done)h+='<input type="number" class="order-input" min="1" max="'+deliveries.length+'" value="'+(i+1)+'" onchange="changeOrder('+i+',this.value)">';
+    h+='</div>';
+    if(d.address)h+='<div class="addr-text">📍 '+d.address+'</div>';
+    if(!done&&d.eta)h+='<div class="eta-text">🕐 예상: '+d.eta+'</div>';
+    if(d.memo)h+='<div class="memo-box">📝 '+d.memo+'</div>';
+    if(d.adminMemo)h+='<div class="admin-memo-box">⚠️ '+d.adminMemo+'</div>';
+    if(done&&d.completedAt){var ct=new Date(d.completedAt);var ts=String(ct.getHours()).padStart(2,'0')+':'+String(ct.getMinutes()).padStart(2,'0');var info='⏰ '+ts+(d.status==='completed'?' 완료':(d.status==='absent'?' 부재':' 반송'));if(d.amount>0)info+=' | 💰'+formatAmount(d.amount)+' ('+d.paymentMethod+'/'+d.paymentStatus+')';h+='<div class="complete-info">'+info+'</div>';}
+    h+='<div class="btn-row">';
+    if(!done){h+='<button class="d-btn navi" onclick="openNavi('+i+')">🧭 길안내</button><button class="d-btn complete" onclick="openCompleteModal('+i+')">✅ 완료</button><button class="d-btn insert" onclick="openInsertModal('+i+')">➕ 뒤에추가</button>';}
+    else{if(d.receiptUrl)h+='<a href="'+d.receiptUrl+'" target="_blank" class="d-btn insert">🧾 영수증</a>';h+='<button class="d-btn insert" style="color:#ef4444;" onclick="cancelComplete('+i+')">↩️ 취소</button>';}
+    h+='</div></div>';
+  });
+  c.innerHTML=h;
+  if(ni>=0)setTimeout(function(){var el=document.getElementById('del-'+ni);if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
+}
 
-  const nextIdx=deliveries.findIndex(d=>d.status==='pending');
-  let html='';
+function changeOrder(ci,ns){var ni=parseInt(ns)-1;if(isNaN(ni)||ni<0||ni>=deliveries.length||ni===ci)return;var it=deliveries.splice(ci,1)[0];deliveries.splice(ni,0,it);afterDeliveryChange();showToast((ci+1)+'→'+(ni+1)+'번');}
 
-  deliveries.forEach((d,i)=>{
-    const isDone=d.status!=='pending';
-    const isNext=i===nextIdx;
+function updateProgress(){
+  var t=deliveries.length,dn=deliveries.filter(function(d){return d.status!=='pending';}).length,rm=t-dn,pc=t>0?Math.round((dn/t)*100):0;
+  document.getElementById('progressStatus').textContent=dn===t&&t>0?'🎉 배송 완료!':'배송 진행중';
+  document.getElementById('progressCount').textContent=dn+'/'+t;document.getElementById('progressFill').style.width=pc+'%';
+  document.getElementById('statTotal').textContent=t;document.getElementById('statDone').textContent=dn;document.getElementById('statRemain').textContent=rm;
+  if(!t){document.getElementById('statDistance').textContent='-';return;}
+  var dist=0,pL=startLocation.lat,pN=startLocation.lng;
+  deliveries.forEach(function(d){if(d.lat&&d.lng){dist+=calcDistance(pL,pN,d.lat,d.lng);pL=d.lat;pN=d.lng;}});
+  if(returnLocation.use&&returnLocation.lat)dist+=calcDistance(pL,pN,returnLocation.lat,returnLocation.lng);
+  document.getElementById('statDistance').textContent=(dist*1.4).toFixed(1)+'km';
+}
 
-    let itemClass='delivery-item';
-    if(isDone)itemClass+=' completed';
-    if(isNext)itemClass+=' next-delivery';
-    if(d.isUrgent)itemClass+=' urgent';
+function autoSortRoute(mode){
+  var pending=deliveries.filter(function(d){return d.status==='pending'&&d.lat&&d.lng;});
+  var done=deliveries.filter(function(d){return d.status!=='pending';});
+  var noC=deliveries.filter(function(d){return d.status==='pending'&&(!d.lat||!d.lng);});
+  if(pending.length<2){showToast('정렬할 배송지 부족');return;}
+  var sorted=[],rem=pending.slice();
+  if(mode==='near'){var cL=startLocation.lat,cN=startLocation.lng;while(rem.length){var mD=Infinity,mI=0;rem.forEach(function(d,i){var dd=calcDistance(cL,cN,d.lat,d.lng);if(dd<mD){mD=dd;mI=i;}});var n=rem.splice(mI,1)[0];sorted.push(n);cL=n.lat;cN=n.lng;}}
+  else{var bL=returnLocation.use&&returnLocation.lat?returnLocation.lat:startLocation.lat;var bN=returnLocation.use&&returnLocation.lng?returnLocation.lng:startLocation.lng;rem.sort(function(a,b){return calcDistance(bL,bN,b.lat,b.lng)-calcDistance(bL,bN,a.lat,a.lng);});sorted=rem;}
+  deliveries=done.concat(sorted).concat(noC);afterDeliveryChange();showToast(mode==='near'?'가까운순 완료':'먼곳부터 완료');
+}
 
-    html+='<div class="'+itemClass+'" id="del-'+i+'">';
+function saveCurrentRoute(){if(!deliveries.length){showToast('저장할 배송지 없음');return;}var name=prompt('루트 이름:',getTodayStr()+' 루트');if(!name)return;var rd=deliveries.map(function(d){return{company:d.company,address:d.address,memo:d.memo,lat:d.lat,lng:d.lng};});db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('savedRoutes').add({name:name,deliveries:rd,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){showToast('저장 완료: '+name);}).catch(function(){showToast('저장 실패');});}
 
-    // 상단: 순번 + 업체명 + 순서입력
-    html+='<div class="item-top">';
-    html+='<div class="order-badge">'+(isDone?(d.status==='completed'?'✅':(d.status==='absent'?'🚫':'↩️')):(i+1))+'</div>';
-    html+='<div class="company-name">';
-    if(d.isUrgent)html+='<span style="color:#ef4444;font-size:11px;">🚨긴급 </span>';
-    if(d.isPickup)html+='<span style="color:#f59e0b;font-size:11px;">📦수거 </span>';
-    html+=(d.company||'업체없음')+'</div>';
+function loadSavedRoute(){db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('savedRoutes').orderBy('createdAt','desc').limit(10).get().then(function(snap){if(snap.empty){showToast('저장된 루트 없음');return;}var msg='저장된 루트:\n',routes=[];snap.forEach(function(doc){routes.push(Object.assign({id:doc.id},doc.data()));msg+=(routes.length)+'. '+doc.data().name+' ('+(doc.data().deliveries||[]).length+'건)\n';});msg+='\n번호 입력 (0=취소):';var c=parseInt(prompt(msg));if(!c||c<1||c>routes.length)return;var r=routes[c-1];if(!confirm(r.name+' 불러오기?'))return;var done=deliveries.filter(function(d){return d.status!=='pending';});var nd=(r.deliveries||[]).map(function(d){return makeDelivery(d.company,d.address,d.memo,d.lat,d.lng);});deliveries=done.concat(nd);afterDeliveryChange();showToast(r.name+' 적용');}).catch(function(){showToast('불러오기 실패');});}
 
-    if(!isDone){
-      html+='<input type="number" class="order-input" min="1" max="'+deliveries.length+'" value="'+(i+1)+'" onchange="changeOrder('+i+',this.value)">';
-    }
-    html+='</div>';
+function loadFixedRoutes(){db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('fixedStops').orderBy('order').get().then(function(snap){if(snap.empty){showToast('고정 배송지 없음');return;}var added=0;snap.forEach(function(doc){var d=doc.data();var exists=deliveries.some(function(dl){return dl.address===d.address||(dl.lat===d.lat&&dl.lng===d.lng&&d.lat!==0);});if(!exists){deliveries.push(makeDelivery(d.company||'',d.address||'',d.memo||'',d.lat||0,d.lng||0));added++;}});if(added>0){afterDeliveryChange();showToast(added+'개 추가');}else showToast('이미 모두 추가됨');}).catch(function(){showToast('불러오기 실패');});}
 
-    // 주소
-    if(d.address)html+='<div class="address">📍 '+d.address+'</div>';
+function openNavi(i){var d=deliveries[i];if(!d)return;if(d.lat&&d.lng){var n=encodeURIComponent(d.company||d.address);if(/Android|iPhone|iPad/i.test(navigator.userAgent)){window.location.href='kakaomap://route?ep='+d.lat+','+d.lng+'&by=CAR';setTimeout(function(){window.open('https://map.kakao.com/link/to/'+n+','+d.lat+','+d.lng,'_blank');},1500);}else window.open('https://map.kakao.com/link/to/'+n+','+d.lat+','+d.lng,'_blank');}else window.open('https://map.kakao.com/link/search/'+encodeURIComponent(d.address||d.company),'_blank');}
 
-    // ETA
-    if(!isDone&&d.eta)html+='<div class="eta-info">🕐 예상 도착: '+d.eta+'</div>';
-
-    // 메모
-    if(d.memo)html+='<div class="memo-box">📝 '+d.memo+'</div>';
-
-    // 관리자 메모
-    if(d.adminMemo)html+='<div class="admin-memo-box">⚠️ 관리자: '+d.adminMemo+'</div>';
-
-    // 완료 정보
-    if(isDone&&d.completedAt){
-      const ct=new Date(d.completedAt);
-      const timeStr=ct.getHours().toString().padStart(2,'0')+':'+ct.getMinutes().toString().padStart(2,'0');
-      let info='⏰ '+timeStr+
-        // ==================== 지도 ====================
+// 지도
 function initMap(){
   if(map)return;
-  const container=document.getElementById('mapContainer');
-  if(!container)return;
-  map=new kakao.maps.Map(container,{
-    center:new kakao.maps.LatLng(startLocation.lat||37.5665,startLocation.lng||126.9780),
-    level:7
+  kakao.maps.load(function(){
+    var c=document.getElementById('mapContainer');
+    map=new kakao.maps.Map(c,{center:new kakao.maps.LatLng(startLocation.lat||37.5665,startLocation.lng||126.9780),level:7});
+    updateMapMarkers();
   });
-  updateMapMarkers();
 }
 
 function updateMapMarkers(){
-  if(!map)return;
-
-  // 기존 제거
-  markers.forEach(m=>{try{m.setMap(null);}catch(e){}});
-  markers=[];
-  if(polyline){polyline.setMap(null);polyline=null;}
-
-  const path=[];
-
-  // 출발지
-  if(startLocation.lat&&startLocation.lng){
-    const pos=new kakao.maps.LatLng(startLocation.lat,startLocation.lng);
-    path.push(pos);
-    const el=document.createElement('div');
-    el.innerHTML='<div style="background:#22c55e;color:#fff;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);white-space:nowrap;">🏠 출발</div>';
-    const ov=new kakao.maps.CustomOverlay({position:pos,content:el,yAnchor:1.3,clickable:true});
-    ov.setMap(map);
-    markers.push(ov);
-  }
-
-  // 배송지
-  deliveries.forEach((d,i)=>{
-    if(!d.lat||!d.lng)return;
-    const pos=new kakao.maps.LatLng(d.lat,d.lng);
-    path.push(pos);
-
-    const isDone=d.status!=='pending';
-    const isSelected=mapClickMode&&mapClickOrder.indexOf(i)>=0;
-    const selectedNum=mapClickOrder.indexOf(i)+1;
-
-    let bgColor='#1e3a5f';
-    let label=String(i+1);
-    if(isDone){bgColor='#9ca3af';label='✓';}
-    else if(isSelected){bgColor='#ef4444';label=String(selectedNum);}
-    else if(d.isUrgent){bgColor='#ef4444';}
-    else if(d.isPickup){bgColor='#f59e0b';}
-
-    const companyName=d.company||'';
-
-    const el=document.createElement('div');
-    el.className='map-pin';
-    el.innerHTML='<div class="pin-num" style="background:'+bgColor+';">'+label+'</div>'+
-      (companyName?'<div class="pin-name">'+companyName+'</div>':'');
-
-    // 클릭 이벤트 - 클로저로 인덱스 고정
+  if(!map)return;markers.forEach(function(m){try{m.setMap(null);}catch(e){}});markers=[];if(polyline){polyline.setMap(null);polyline=null;}
+  var path=[];
+  if(startLocation.lat&&startLocation.lng){var sp=new kakao.maps.LatLng(startLocation.lat,startLocation.lng);path.push(sp);var se=document.createElement('div');se.innerHTML='<div style="background:#22c55e;color:#fff;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);">🏠 출발</div>';var so=new kakao.maps.CustomOverlay({position:sp,content:se,yAnchor:1.3,clickable:true});so.setMap(map);markers.push(so);}
+  deliveries.forEach(function(d,i){
+    if(!d.lat||!d.lng)return;var pos=new kakao.maps.LatLng(d.lat,d.lng);path.push(pos);
+    var done=d.status!=='pending';var isSel=mapClickMode&&mapClickOrder.indexOf(i)>=0;var selN=mapClickOrder.indexOf(i)+1;
+    var bg='#1e3a5f',lb=String(i+1);
+    if(done){bg='#9ca3af';lb='✓';}else if(isSel){bg='#ef4444';lb=String(selN);}else if(d.isUrgent)bg='#ef4444';else if(d.isPickup)bg='#f59e0b';
+    var el=document.createElement('div');el.className='map-pin';
+    el.innerHTML='<div class="pin-num" style="background:'+bg+';">'+lb+'</div>'+(d.company?'<div class="pin-name">'+d.company+'</div>':'');
     (function(idx){
-      el.addEventListener('click',function(e){
-        e.stopPropagation();
-        if(mapClickMode){
-          handlePinClick(idx);
-        } else {
-          const dd=deliveries[idx];
-          showToast((idx+1)+'번 '+(dd.company||dd.address));
-        }
-      });
-      // 모바일 터치
-      el.addEventListener('touchend',function(e){
-        e.preventDefault();
-        e.stopPropagation();
-        if(mapClickMode){
-          handlePinClick(idx);
-        } else {
-          const dd=deliveries[idx];
-          showToast((idx+1)+'번 '+(dd.company||dd.address));
-        }
-      });
+      el.addEventListener('click',function(e){e.stopPropagation();if(mapClickMode)handlePinClick(idx);else showToast((idx+1)+'번 '+(deliveries[idx].company||deliveries[idx].address));});
+      el.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();if(mapClickMode)handlePinClick(idx);else showToast((idx+1)+'번 '+(deliveries[idx].company||deliveries[idx].address));});
     })(i);
-
-    const ov=new kakao.maps.CustomOverlay({position:pos,content:el,yAnchor:1.5,clickable:true});
-    ov.setMap(map);
-    ov._idx=i;
-    markers.push(ov);
+    var ov=new kakao.maps.CustomOverlay({position:pos,content:el,yAnchor:1.5,clickable:true});ov.setMap(map);markers.push(ov);
   });
-
-  // 복귀지
-  if(returnLocation.use&&returnLocation.lat&&returnLocation.lng){
-    const pos=new kakao.maps.LatLng(returnLocation.lat,returnLocation.lng);
-    path.push(pos);
-    const el=document.createElement('div');
-    el.innerHTML='<div style="background:#ef4444;color:#fff;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);white-space:nowrap;">🏁 복귀</div>';
-    const ov=new kakao.maps.CustomOverlay({position:pos,content:el,yAnchor:1.3,clickable:true});
-    ov.setMap(map);
-    markers.push(ov);
-  }
-
-  // 경로선
-  if(path.length>=2){
-    polyline=new kakao.maps.Polyline({
-      path:path,strokeWeight:3,strokeColor:'#1e3a5f',strokeOpacity:0.7,strokeStyle:'solid'
-    });
-    polyline.setMap(map);
-  }
-
+  if(returnLocation.use&&returnLocation.lat&&returnLocation.lng){var rp=new kakao.maps.LatLng(returnLocation.lat,returnLocation.lng);path.push(rp);var re=document.createElement('div');re.innerHTML='<div style="background:#ef4444;color:#fff;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);">🏁 복귀</div>';var ro=new kakao.maps.CustomOverlay({position:rp,content:re,yAnchor:1.3,clickable:true});ro.setMap(map);markers.push(ro);}
+  if(path.length>=2){polyline=new kakao.maps.Polyline({path:path,strokeWeight:3,strokeColor:'#1e3a5f',strokeOpacity:0.7,strokeStyle:'solid'});polyline.setMap(map);}
   fitMapBounds();
 }
 
-function fitMapBounds(){
-  if(!map)return;
-  const bounds=new kakao.maps.LatLngBounds();
-  let has=false;
+function fitMapBounds(){if(!map)return;var b=new kakao.maps.LatLngBounds();var has=false;if(startLocation.lat){b.extend(new kakao.maps.LatLng(startLocation.lat,startLocation.lng));has=true;}deliveries.forEach(function(d){if(d.lat&&d.lng){b.extend(new kakao.maps.LatLng(d.lat,d.lng));has=true;}});if(returnLocation.use&&returnLocation.lat){b.extend(new kakao.maps.LatLng(returnLocation.lat,returnLocation.lng));has=true;}if(has)map.setBounds(b);}
 
-  if(startLocation.lat&&startLocation.lng){bounds.extend(new kakao.maps.LatLng(startLocation.lat,startLocation.lng));has=true;}
-  deliveries.forEach(d=>{if(d.lat&&d.lng){bounds.extend(new kakao.maps.LatLng(d.lat,d.lng));has=true;}});
-  if(returnLocation.use&&returnLocation.lat&&returnLocation.lng){bounds.extend(new kakao.maps.LatLng(returnLocation.lat,returnLocation.lng));has=true;}
+function startPinTouchMode(){mapClickMode=true;mapClickOrder=[];document.getElementById('pinTouchBar').classList.add('active');document.getElementById('mapClickModeBtn').classList.add('active');document.getElementById('ptSelected').textContent='선택: 0개';updateMapMarkers();showToast('핀을 순서대로 터치');}
+function handlePinClick(idx){if(!mapClickMode)return;var d=deliveries[idx];if(!d||d.status!=='pending')return;var p=mapClickOrder.indexOf(idx);if(p>=0){mapClickOrder.splice(p,1);showToast((idx+1)+'번 해제');}else{mapClickOrder.push(idx);showToast(mapClickOrder.length+'번째: '+(d.company||d.address));}document.getElementById('ptSelected').textContent='선택: '+mapClickOrder.length+'개';updateMapMarkers();}
+function applyPinTouchOrder(){if(!mapClickOrder.length){showToast('선택된 핀 없음');return;}var done=deliveries.filter(function(d){return d.status!=='pending';});var sel=mapClickOrder.map(function(i){return deliveries[i];}).filter(function(d){return d&&d.status==='pending';});var unsel=deliveries.filter(function(d,i){return d.status==='pending'&&mapClickOrder.indexOf(i)<0;});deliveries=done.concat(sel).concat(unsel);cancelPinTouch();afterDeliveryChange();showToast('핀터치 순서 적용 ('+sel.length+'건)');}
+function resetPinTouch(){mapClickOrder=[];document.getElementById('ptSelected').textContent='선택: 0개';updateMapMarkers();showToast('초기화');}
+function cancelPinTouch(){mapClickMode=false;mapClickOrder=[];document.getElementById('pinTouchBar').classList.remove('active');document.getElementById('mapClickModeBtn').classList.remove('active');updateMapMarkers();}
 
-  if(has)map.setBounds(bounds);
-}
+// 완료 모달
+function openCompleteModal(i){completeTargetIndex=i;var d=deliveries[i];document.getElementById('completeCompanyName').textContent=(i+1)+'번 '+(d.company||'');document.getElementById('completeCompany').value=d.company||'';document.getElementById('completeAmount').value='';document.getElementById('completeMemo').value=d.memo||'';document.getElementById('receiptPreview').innerHTML='📷 아래 버튼으로 촬영 또는 선택';receiptFile=null;resetRadio('deliveryStatus','완료');resetRadio('paymentStatus','완료');resetRadio('paymentMethod','카드');document.getElementById('completeModal').classList.add('show');}
+function closeCompleteModal(){document.getElementById('completeModal').classList.remove('show');completeTargetIndex=-1;}
+function selectRadio(el,gid){document.getElementById(gid).querySelectorAll('.radio-btn').forEach(function(b){b.classList.remove('selected');});el.classList.add('selected');}
+function resetRadio(gid,dv){document.getElementById(gid).querySelectorAll('.radio-btn').forEach(function(b){b.classList.remove('selected');if(b.getAttribute('data-value')===dv)b.classList.add('selected');});}
+function getRadioVal(gid){var a=document.getElementById(gid).querySelector('.radio-btn.selected');return a?a.getAttribute('data-value'):'';}
 
-// ==================== 핀 터치 모드 ====================
-function startPinTouchMode(){
-  mapClickMode=true;
-  mapClickOrder=[];
-  document.getElementById('pinTouchBar').classList.add('active');
-  document.getElementById('mapClickModeBtn').classList.add('active');
-  document.getElementById('ptSelected').textContent='선택: 0개';
-  updateMapMarkers();
-  showToast('핀을 순서대로 터치하세요');
-}
+function submitComplete(){
+  if(completeTargetIndex<0)return;var d=deliveries[completeTargetIndex];
+  var st=getRadioVal('deliveryStatus'),ps=getRadioVal('paymentStatus'),pm=getRadioVal('paymentMethod');
+  var amt=getAmountNumber(document.getElementById('completeAmount').value);
+  var memo=document.getElementById('completeMemo').value.trim();
+  var co=document.getElementById('completeCompany').value.trim();
+  d.status=st==='완료'?'completed':(st==='부재'?'absent':'returned');
+  d.paymentStatus=ps;d.paymentMethod=pm;d.amount=amt;d.memo=memo;if(co)d.company=co;d.completedAt=new Date().toISOString();
 
-function handlePinClick(idx){
-  if(!mapClickMode)return;
-  const d=deliveries[idx];
-  if(!d||d.status!=='pending')return;
+  function finish(){receiptFile=null;closeCompleteModal();afterDeliveryChange();showToast('✅ '+(d.company||'')+' '+(d.status==='completed'?'완료':(d.status==='absent'?'부재':'반송')));setTimeout(showNextPopup,500);}
 
-  const pos=mapClickOrder.indexOf(idx);
-  if(pos>=0){
-    mapClickOrder.splice(pos,1);
-    showToast((idx+1)+'번 선택 해제');
-  } else {
-    mapClickOrder.push(idx);
-    showToast(mapClickOrder.length+'번째: '+(d.company||d.address));
-  }
-
-  document.getElementById('ptSelected').textContent='선택: '+mapClickOrder.length+'개';
-  updateMapMarkers();
-}
-
-function applyPinTouchOrder(){
-  if(mapClickOrder.length===0){showToast('선택된 핀이 없습니다');return;}
-
-  const done=deliveries.filter(d=>d.status!=='pending');
-  const selected=mapClickOrder.map(idx=>deliveries[idx]).filter(d=>d&&d.status==='pending');
-  const unselected=deliveries.filter((d,i)=>d.status==='pending'&&!mapClickOrder.includes(i));
-
-  deliveries=[...done,...selected,...unselected];
-  cancelPinTouch();
-  afterDeliveryChange();
-  showToast('핀터치 순서 적용 완료 ('+selected.length+'건)');
-}
-
-function resetPinTouch(){
-  mapClickOrder=[];
-  document.getElementById('ptSelected').textContent='선택: 0개';
-  updateMapMarkers();
-  showToast('선택 초기화');
-}
-
-function cancelPinTouch(){
-  mapClickMode=false;
-  mapClickOrder=[];
-  document.getElementById('pinTouchBar').classList.remove('active');
-  document.getElementById('mapClickModeBtn').classList.remove('active');
-  updateMapMarkers();
-}
-
-// ==================== 배송 완료 모달 ====================
-function openCompleteModal(index){
-  completeTargetIndex=index;
-  const d=deliveries[index];
-  document.getElementById('completeCompanyName').textContent=(index+1)+'번 '+(d.company||d.address||'');
-  document.getElementById('completeCompany').value=d.company||'';
-  document.getElementById('completeAmount').value='';
-  document.getElementById('completeMemo').value=d.memo||'';
-  document.getElementById('receiptPreview').innerHTML='📷 아래 버튼으로 촬영 또는 선택';
-  receiptFile=null;
-
-  // 라디오 초기화
-  resetRadio('deliveryStatus','완료');
-  resetRadio('paymentStatus','완료');
-  resetRadio('paymentMethod','카드');
-
-  document.getElementById('completeModal').classList.add('show');
-}
-
-function closeCompleteModal(){
-  document.getElementById('completeModal').classList.remove('show');
-  completeTargetIndex=-1;
-}
-
-function selectRadio(el,groupId){
-  document.getElementById(groupId).querySelectorAll('.radio-btn').forEach(b=>b.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function resetRadio(groupId,defaultVal){
-  document.getElementById(groupId).querySelectorAll('.radio-btn').forEach(b=>{
-    b.classList.remove('selected');
-    if(b.getAttribute('data-value')===defaultVal)b.classList.add('selected');
-  });
-}
-
-function getRadioValue(groupId){
-  const active=document.getElementById(groupId).querySelector('.radio-btn.selected');
-  return active?active.getAttribute('data-value'):'';
-}
-
-async function submitComplete(){
-  if(completeTargetIndex<0)return;
-  const d=deliveries[completeTargetIndex];
-
-  const status=getRadioValue('deliveryStatus');
-  const payStatus=getRadioValue('paymentStatus');
-  const payMethod=getRadioValue('paymentMethod');
-  const amount=getAmountNumber(document.getElementById('completeAmount').value);
-  const memo=document.getElementById('completeMemo').value.trim();
-  const company=document.getElementById('completeCompany').value.trim();
-
-  if(status==='완료')d.status='completed';
-  else if(status==='부재')d.status='absent';
-  else d.status='returned';
-
-  d.paymentStatus=payStatus;
-  d.paymentMethod=payMethod;
-  d.amount=amount;
-  d.memo=memo;
-  if(company)d.company=company;
-  d.completedAt=new Date().toISOString();
-
-  // 영수증 업로드
   if(receiptFile){
-    try {
-      showToast('영수증 업로드 중...');
-      const ts=Date.now();
-      const ext=receiptFile.name.split('.').pop()||'jpg';
-      const path='receipts/'+currentCompanyId+'/'+currentCourseId+'/'+getTodayStr()+'/'+ts+'.'+ext;
-
-      // Blob으로 변환해서 업로드 (호환성)
-      const arrayBuffer=await receiptFile.arrayBuffer();
-      const blob=new Blob([arrayBuffer],{type:receiptFile.type});
-      const ref=storage.ref(path);
-      const snapshot=await ref.put(blob,{contentType:receiptFile.type});
-      d.receiptUrl=await snapshot.ref.getDownloadURL();
-      showToast('영수증 업로드 완료');
-    } catch(e){
-      console.error('영수증 업로드 오류:',e);
-      showToast('영수증 업로드 실패');
-    }
-  }
-
-  receiptFile=null;
-  closeCompleteModal();
-  afterDeliveryChange();
-
-  const statusText=d.status==='completed'?'완료':(d.status==='absent'?'부재':'반송');
-  showToast('✅ '+(d.company||'')+' '+statusText+' 처리');
-
-  // 다음 배송지 안내
-  setTimeout(()=>showNextDeliveryPopup(),500);
+    showToast('영수증 업로드중...');
+    var ts=Date.now(),ext=receiptFile.name.split('.').pop()||'jpg';
+    var path='receipts/'+currentCompanyId+'/'+currentCourseId+'/'+getTodayStr()+'/'+ts+'.'+ext;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var bytes=new Uint8Array(e.target.result);
+      var ref=storage.ref(path);
+      ref.put(bytes,{contentType:receiptFile.type}).then(function(snap){return snap.ref.getDownloadURL();}).then(function(url){d.receiptUrl=url;showToast('업로드 완료');finish();}).catch(function(err){console.error('업로드오류:',err);showToast('업로드 실패');finish();});
+    };
+    reader.readAsArrayBuffer(receiptFile);
+  } else finish();
 }
 
-function cancelComplete(index){
-  if(!confirm('완료 처리를 취소하시겠습니까?'))return;
-  const d=deliveries[index];
-  d.status='pending';d.completedAt='';d.paymentStatus='';d.paymentMethod='';d.amount=0;d.receiptUrl='';
-  afterDeliveryChange();
-  showToast('완료 취소됨');
-}
+function cancelComplete(i){if(!confirm('완료 취소?'))return;var d=deliveries[i];d.status='pending';d.completedAt='';d.paymentStatus='';d.paymentMethod='';d.amount=0;d.receiptUrl='';afterDeliveryChange();showToast('취소됨');}
 
-// ==================== 다음 배송지 안내 ====================
-function showNextDeliveryPopup(){
-  const next=deliveries.find(d=>d.status==='pending');
-  if(!next){showToast('🎉 모든 배송이 완료되었습니다!');return;}
-  const idx=deliveries.indexOf(next);
-  document.getElementById('nextCompanyName').textContent=(idx+1)+'번 '+(next.company||'');
-  document.getElementById('nextAddress').textContent=(next.address||'')+(next.eta?' | 예상: '+next.eta:'');
-  document.getElementById('nextModal').classList.add('show');
-}
-
+function showNextPopup(){var n=deliveries.find(function(d){return d.status==='pending';});if(!n){showToast('🎉 모든 배송 완료!');return;}var i=deliveries.indexOf(n);document.getElementById('nextCompanyName').textContent=(i+1)+'번 '+(n.company||'');document.getElementById('nextAddress').textContent=(n.address||'')+(n.eta?' | 예상: '+n.eta:'');document.getElementById('nextModal').classList.add('show');}
 function closeNextModal(){document.getElementById('nextModal').classList.remove('show');}
+function naviToNext(){closeNextModal();var n=deliveries.find(function(d){return d.status==='pending';});if(n)openNavi(deliveries.indexOf(n));}
 
-function naviToNext(){
-  closeNextModal();
-  const next=deliveries.find(d=>d.status==='pending');
-  if(next)openNavi(deliveries.indexOf(next));
-}
-
-// ==================== 배송지 삽입 ====================
-function openInsertModal(afterIdx){
-  insertAfterIndex=afterIdx;
-  document.getElementById('insertAfterInfo').textContent=(afterIdx+1)+'번 '+(deliveries[afterIdx].company||'')+' 뒤에 추가';
-  document.getElementById('insertCompanyInput').value='';
-  document.getElementById('insertAddrInput').value='';
-  document.getElementById('insertMemoInput').value='';
-  document.getElementById('insertAddrInput').dataset.lat='';
-  document.getElementById('insertAddrInput').dataset.lng='';
-  document.getElementById('insertModal').classList.add('show');
-}
-
+function openInsertModal(ai){insertAfterIndex=ai;document.getElementById('insertAfterInfo').textContent=(ai+1)+'번 '+(deliveries[ai].company||'')+' 뒤에 추가';document.getElementById('insertCompanyInput').value='';document.getElementById('insertAddrInput').value='';document.getElementById('insertMemoInput').value='';document.getElementById('insertAddrInput').dataset.lat='';document.getElementById('insertAddrInput').dataset.lng='';document.getElementById('insertModal').classList.add('show');}
 function closeInsertModal(){document.getElementById('insertModal').classList.remove('show');insertAfterIndex=-1;}
-
-async function doInsertDelivery(){
-  const company=document.getElementById('insertCompanyInput').value.trim();
-  const address=document.getElementById('insertAddrInput').value.trim();
-  const memo=document.getElementById('insertMemoInput').value.trim();
-  if(!address&&!company){showToast('업체명 또는 주소를 입력하세요');return;}
-
-  let lat=parseFloat(document.getElementById('insertAddrInput').dataset.lat)||0;
-  let lng=parseFloat(document.getElementById('insertAddrInput').dataset.lng)||0;
-
-  // 좌표 없으면 검색
-  if(!lat&&address){
-    try {
-      const geocoder=new kakao.maps.services.Geocoder();
-      const result=await new Promise((resolve,reject)=>{
-        geocoder.addressSearch(address,(r,s)=>{
-          if(s===kakao.maps.services.Status.OK)resolve(r[0]);else reject();
-        });
-      });
-      lat=parseFloat(result.y);lng=parseFloat(result.x);
-    } catch(e){
-      try {
-        const places=new kakao.maps.services.Places();
-        const result=await new Promise((resolve,reject)=>{
-          places.keywordSearch(address,(r,s)=>{
-            if(s===kakao.maps.services.Status.OK)resolve(r[0]);else reject();
-          });
-        });
-        lat=parseFloat(result.y);lng=parseFloat(result.x);
-      } catch(e2){}
-    }
-  }
-
-  const newDel=makeDelivery(company,address,memo,lat,lng);
-  deliveries.splice(insertAfterIndex+1,0,newDel);
-  closeInsertModal();
-  afterDeliveryChange();
-  showToast((insertAfterIndex+2)+'번에 삽입 완료');
+function doInsertDelivery(){
+  var co=document.getElementById('insertCompanyInput').value.trim(),ad=document.getElementById('insertAddrInput').value.trim(),me=document.getElementById('insertMemoInput').value.trim();
+  if(!ad&&!co){showToast('업체명 또는 주소 입력');return;}
+  var la=parseFloat(document.getElementById('insertAddrInput').dataset.lat)||0,ln=parseFloat(document.getElementById('insertAddrInput').dataset.lng)||0;
+  if(!la&&ad){var geo=new kakao.maps.services.Geocoder();geo.addressSearch(ad,function(r,s){if(s===kakao.maps.services.Status.OK){la=parseFloat(r[0].y);ln=parseFloat(r[0].x);}var nd=makeDelivery(co,ad,me,la,ln);deliveries.splice(insertAfterIndex+1,0,nd);closeInsertModal();afterDeliveryChange();showToast((insertAfterIndex+2)+'번에 삽입');});return;}
+  var nd=makeDelivery(co,ad,me,la,ln);deliveries.splice(insertAfterIndex+1,0,nd);closeInsertModal();afterDeliveryChange();showToast((insertAfterIndex+2)+'번에 삽입');
 }
 
-// ==================== 탭 전환 ====================
-function switchTab(name){
-  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+function switchTab(n){document.querySelectorAll('.tab-item').forEach(function(t){t.classList.remove('active');});document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active');});var tabs=document.querySelectorAll('.tab-item');if(n==='list')tabs[0].classList.add('active');else if(n==='map')tabs[1].classList.add('active');else tabs[2].classList.add('active');document.getElementById(n==='list'?'tabList':(n==='map'?'tabMap':'tabInput')).classList.add('active');if(n==='map')setTimeout(function(){if(!map)initMap();else{map.relayout();updateMapMarkers();}},100);}
 
-  const tabs=document.querySelectorAll('.tab-item');
-  if(name==='list')tabs[0].classList.add('active');
-  else if(name==='map')tabs[1].classList.add('active');
-  else if(name==='input')tabs[2].classList.add('active');
-
-  document.getElementById(name==='list'?'tabList':(name==='map'?'tabMap':'tabInput')).classList.add('active');
-
-  if(name==='map'){
-    setTimeout(()=>{
-      if(!map)initMap();
-      else{map.relayout();updateMapMarkers();}
-    },100);
-  }
-}
-
-// ==================== 메시지 ====================
-async function loadMessages(){
-  try {
-    const snap=await db.collection('companies').doc(currentCompanyId)
-      .collection('courses').doc(currentCourseId)
-      .collection('messages')
-      .where('date','==',getTodayStr())
-      .orderBy('createdAt','desc').get();
-
-    let unread=0;
-    snap.forEach(doc=>{
-      const data=doc.data();
-      if(!(data.readBy||[]).includes(currentDriverName))unread++;
-    });
-
-    const badge=document.getElementById('msgBadge');
-    if(unread>0){badge.textContent=unread;badge.style.display='inline-flex';}
-    else{badge.style.display='none';}
-  } catch(e){console.error('메시지 로드:',e);}
-}
-
-function showMessages(){
-  document.getElementById('messageModal').classList.add('show');
-  loadAllMessages();
-}
-
-async function loadAllMessages(){
-  const container=document.getElementById('messageList');
-  try {
-    const snap=await db.collection('companies').doc(currentCompanyId)
-      .collection('courses').doc(currentCourseId)
-      .collection('messages')
-      .where('date','==',getTodayStr())
-      .orderBy('createdAt','desc').get();
-
-    if(snap.empty){container.innerHTML='<div style="text-align:center;padding:30px;color:#888;">오늘 메시지가 없습니다</div>';return;}
-
-    let html='';
-    snap.forEach(doc=>{
-      const m=doc.data();
-      const isRead=(m.readBy||[]).includes(currentDriverName);
-      const isUrgent=m.isUrgent||false;
-
-      html+='<div style="padding:12px;border:1px solid '+(isUrgent?'#ef4444':'#e5e7eb')+';border-radius:8px;margin-bottom:8px;'+
-        (isUrgent?'background:#fef2f2;':'')+(!isRead?'background:#eff6ff;':'')+'">';
-      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
-      html+='<span style="font-weight:700;">'+(isUrgent?'🚨 ':'📢 ')+(m.title||'관리자 메시지')+'</span>';
-      if(!isRead)html+='<span style="background:#ef4444;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;">NEW</span>';
-      html+='</div>';
-      html+='<div style="font-size:13px;color:#555;">'+(m.content||'')+'</div>';
-      if(m.createdAt){
-        try{
-          const t=m.createdAt.toDate();
-          html+='<div style="font-size:11px;color:#999;margin-top:6px;">'+t.getHours().toString().padStart(2,'0')+':'+t.getMinutes().toString().padStart(2,'0')+'</div>';
-        }catch(e){}
-      }
-      html+='</div>';
-
-      // 읽음 처리
-      if(!isRead){
-        db.collection('companies').doc(currentCompanyId)
-          .collection('courses').doc(currentCourseId)
-          .collection('messages').doc(doc.id)
-          .update({readBy:firebase.firestore.FieldValue.arrayUnion(currentDriverName)}).catch(()=>{});
-      }
-    });
-
-    container.innerHTML=html;
-    loadMessages();
-  } catch(e){container.innerHTML='<div style="color:#ef4444;">메시지 로드 실패</div>';}
-}
-
+function loadMessages(){db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('messages').where('date','==',getTodayStr()).orderBy('createdAt','desc').get().then(function(snap){var u=0;snap.forEach(function(doc){if((doc.data().readBy||[]).indexOf(currentDriverName)<0)u++;});var b=document.getElementById('msgBadge');if(u>0){b.textContent=u;b.style.display='inline-flex';}else b.style.display='none';}).catch(function(){});}
+function showMessages(){document.getElementById('messageModal').classList.add('show');loadAllMessages();}
+function loadAllMessages(){var c=document.getElementById('messageList');db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('messages').where('date','==',getTodayStr()).orderBy('createdAt','desc').get().then(function(snap){if(snap.empty){c.innerHTML='<div style="text-align:center;padding:30px;color:#888;">오늘 메시지 없음</div>';return;}var h='';snap.forEach(function(doc){var m=doc.data(),ir=(m.readBy||[]).indexOf(currentDriverName)>=0,iu=m.isUrgent||false;h+='<div style="padding:12px;border:1px solid '+(iu?'#ef4444':'#e5e7eb')+';border-radius:8px;margin-bottom:8px;'+(iu?'background:#fef2f2;':'')+(!ir?'background:#eff6ff;':'')+'">';h+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-weight:700;">'+(iu?'🚨 ':'📢 ')+(m.title||'관리자 메시지')+'</span>';if(!ir)h+='<span style="background:#ef4444;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;">NEW</span>';h+='</div><div style="font-size:13px;color:#555;">'+(m.content||'')+'</div>';if(m.createdAt){try{var t=m.createdAt.toDate();h+='<div style="font-size:11px;color:#999;margin-top:6px;">'+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+'</div>';}catch(e){}}h+='</div>';if(!ir)db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('messages').doc(doc.id).update({readBy:firebase.firestore.FieldValue.arrayUnion(currentDriverName)}).catch(function(){});});c.innerHTML=h;loadMessages();}).catch(function(){c.innerHTML='<div style="color:#ef4444;">로드 실패</div>';});}
 function closeMessageModal(){document.getElementById('messageModal').classList.remove('show');}
 
-// ==================== 카카오톡 공유 ====================
-function shareRoute(){
-  if(deliveries.length===0){showToast('공유할 배송지가 없습니다');return;}
+function shareRoute(){if(!deliveries.length){showToast('공유할 배송지 없음');return;}var t='📦 오늘의 배송 루트\n📅 '+getTodayStr()+'\n🚗 '+currentCourseName+' / '+currentDriverName+'\n\n';deliveries.forEach(function(d,i){var ic=d.status==='completed'?'✅':(d.status==='absent'?'🚫':(d.status==='returned'?'↩️':'⏳'));t+=(i+1)+'. '+ic+' '+(d.company||'')+(d.address?' - '+d.address:'')+'\n';});var dn=deliveries.filter(function(d){return d.status!=='pending';}).length;t+='\n진행: '+dn+'/'+deliveries.length;navigator.clipboard.writeText(t).then(function(){showToast('클립보드 복사됨!');}).catch(function(){var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('클립보드 복사됨!');});}
 
-  let text='📦 오늘의 배송 루트\n📅 '+getTodayStr()+'\n🚗 '+currentCourseName+' / '+currentDriverName+'\n\n';
-  deliveries.forEach((d,i)=>{
-    const icon=d.status==='completed'?'✅':(d.status==='absent'?'🚫':(d.status==='returned'?'↩️':'⏳'));
-    text+=(i+1)+'. '+icon+' '+(d.company||'')+(d.address?' - '+d.address:'')+'\n';
-  });
-  const done=deliveries.filter(d=>d.status!=='pending').length;
-  text+='\n진행: '+done+'/'+deliveries.length+' 완료';
-
-  navigator.clipboard.writeText(text).then(()=>{
-    showToast('클립보드에 복사됨! 카카오톡에 붙여넣기 하세요');
-  }).catch(()=>{
-    const ta=document.createElement('textarea');
-    ta.value=text;document.body.appendChild(ta);ta.select();
-    document.execCommand('copy');document.body.removeChild(ta);
-    showToast('클립보드에 복사됨!');
-  });
-}
-
-// ==================== 실시간 리스너 ====================
 function startRealtimeListeners(){
-  // 메시지
-  db.collection('companies').doc(currentCompanyId)
-    .collection('courses').doc(currentCourseId)
-    .collection('messages')
-    .where('date','==',getTodayStr())
-    .onSnapshot(snap=>{
-      loadMessages();
-      snap.docChanges().forEach(change=>{
-        if(change.type==='added'){
-          const m=change.doc.data();
-          if(m.isUrgent)showToast('🚨 긴급 메시지: '+(m.title||''));
-        }
-      });
-    },err=>console.error('메시지 리스너:',err));
-
-  // 긴급 픽업
-  db.collection('companies').doc(currentCompanyId)
-    .collection('courses').doc(currentCourseId)
-    .collection('pickups')
-    .where('date','==',getTodayStr())
-    .where('status','==','pending')
-    .onSnapshot(snap=>{
-      snap.docChanges().forEach(change=>{
-        if(change.type==='added')addPickupToRoute(change.doc.id,change.doc.data());
-      });
-    },err=>console.error('픽업 리스너:',err));
-
-  // 이관
-  db.collection('companies').doc(currentCompanyId)
-    .collection('courses').doc(currentCourseId)
-    .collection('transfers')
-    .where('date','==',getTodayStr())
-    .where('status','==','pending')
-    .onSnapshot(snap=>{
-      snap.docChanges().forEach(change=>{
-        if(change.type==='added')addTransferToRoute(change.doc.id,change.doc.data());
-      });
-    },err=>console.error('이관 리스너:',err));
+  db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('messages').where('date','==',getTodayStr()).onSnapshot(function(snap){loadMessages();snap.docChanges().forEach(function(ch){if(ch.type==='added'){var m=ch.doc.data();if(m.isUrgent)showToast('🚨 긴급: '+(m.title||''));}});},function(){});
+  db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('pickups').where('date','==',getTodayStr()).where('status','==','pending').onSnapshot(function(snap){snap.docChanges().forEach(function(ch){if(ch.type==='added')addPickup(ch.doc.id,ch.doc.data());});},function(){});
+  db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('transfers').where('date','==',getTodayStr()).where('status','==','pending').onSnapshot(function(snap){snap.docChanges().forEach(function(ch){if(ch.type==='added')addTransfer(ch.doc.id,ch.doc.data());});},function(){});
 }
-
-function addPickupToRoute(docId,pickup){
-  if(deliveries.some(d=>d.pickupId===docId))return;
-  const newDel=makeDelivery(pickup.company||'긴급수거',pickup.address||'',pickup.memo||'',pickup.lat||0,pickup.lng||0);
-  newDel.isUrgent=true;newDel.isPickup=true;newDel.pickupId=docId;
-
-  const nextIdx=deliveries.findIndex(d=>d.status==='pending');
-  if(nextIdx>=0)deliveries.splice(nextIdx,0,newDel);
-  else deliveries.push(newDel);
-
-  db.collection('companies').doc(currentCompanyId)
-    .collection('courses').doc(currentCourseId)
-    .collection('pickups').doc(docId)
-    .update({status:'assigned'}).catch(()=>{});
-
-  afterDeliveryChange();
-  showToast('🚨 긴급 수거 요청 추가!');
-}
-
-function addTransferToRoute(docId,transfer){
-  if(deliveries.some(d=>d.transferId===docId))return;
-  const tDels=transfer.deliveries||[];
-  tDels.forEach(td=>{
-    const newDel=makeDelivery(td.company||'',td.address||'',td.memo||'',td.lat||0,td.lng||0);
-    newDel.transferId=docId;
-    deliveries.push(newDel);
-  });
-
-  db.collection('companies').doc(currentCompanyId)
-    .collection('courses').doc(currentCourseId)
-    .collection('transfers').doc(docId)
-    .update({status:'accepted'}).catch(()=>{});
-
-  afterDeliveryChange();
-  showToast('📦 '+tDels.length+'건 배송 이관됨!');
-}
+function addPickup(did,pk){if(deliveries.some(function(d){return d.pickupId===did;}))return;var nd=makeDelivery(pk.company||'긴급수거',pk.address||'',pk.memo||'',pk.lat||0,pk.lng||0);nd.isUrgent=true;nd.isPickup=true;nd.pickupId=did;var ni=deliveries.findIndex(function(d){return d.status==='pending';});if(ni>=0)deliveries.splice(ni,0,nd);else deliveries.push(nd);db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('pickups').doc(did).update({status:'assigned'}).catch(function(){});afterDeliveryChange();showToast('🚨 긴급 수거 추가!');}
+function addTransfer(did,tr){if(deliveries.some(function(d){return d.transferId===did;}))return;var tds=tr.deliveries||[];tds.forEach(function(td){var nd=makeDelivery(td.company||'',td.address||'',td.memo||'',td.lat||0,td.lng||0);nd.transferId=did;deliveries.push(nd);});db.collection('companies').doc(currentCompanyId).collection('courses').doc(currentCourseId).collection('transfers').doc(did).update({status:'accepted'}).catch(function(){});afterDeliveryChange();showToast('📦 '+tds.length+'건 이관됨!');}
 </script>
 </body>
 </html>
